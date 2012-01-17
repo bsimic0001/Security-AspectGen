@@ -1,0 +1,2073 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ReportDefinition type="xml">
+    <TemplateName>OWASP Top Ten 2010</TemplateName>
+    <TemplatePath></TemplatePath>
+    <LogoPath>/fortify.jpg</LogoPath>
+    <Footnote>Copyright 2010 Fortify Software Inc.</Footnote>
+    <UserName>simicb</UserName>
+    <ReportSection optionalSubsections="false" enabled="true">
+        <Title>Report Overview</Title>
+        <SubSection enabled="true">
+            <Title>Report Summary</Title>
+            <Description>This provides a high level summary of the findings that the analysis produced. Also includes basic information on the scope of the scan.</Description>
+            <Text>On Jan 10, 2012, a source code review was performed over the jada_java code base. 675 files, 44,396 LOC (Executable) were scanned. A total of 81 issues were uncovered during the analysis. This report provides a comprehensive description of all the types of OWASP Top Ten 2010 issues found in this project. Specific examples and source code are provided for each issue type.</Text>
+        </SubSection>
+        <SubSection enabled="true">
+            <Title>Issue Summary</Title>
+            <Description>A table summarizing the number of issues found and the breakdown of issues in each OWASP Top Ten 2010 category</Description>
+            <IssueListing limit="-1" listing="false">
+                <Refinement></Refinement>
+                <Chart chartType="table">
+                    <Axis>OWASP Top Ten 2010</Axis>
+                    <MajorAttribute>Analysis</MajorAttribute>
+                    <GroupingSection count="55">
+                        <groupTitle>A1 Injection</groupTitle>
+                    </GroupingSection>
+                    <GroupingSection count="26">
+                        <groupTitle>A2 Cross-Site Scripting (XSS)</groupTitle>
+                    </GroupingSection>
+                </Chart>
+            </IssueListing>
+        </SubSection>
+    </ReportSection>
+    <ReportSection optionalSubsections="true" enabled="true">
+        <Title>Issue Breakdown by OWASP Top Ten 2010</Title>
+        <SubSection enabled="true">
+            <Title>Issue Breakdown by OWASP Top Ten 2010</Title>
+            <IssueListing limit="-1" listing="false">
+                <Refinement></Refinement>
+                <Chart chartType="pie">
+                    <Axis>OWASP Top Ten 2010</Axis>
+                    <MajorAttribute>Analysis</MajorAttribute>
+                    <GroupingSection count="55">
+                        <groupTitle>A1 Injection</groupTitle>
+                    </GroupingSection>
+                    <GroupingSection count="26">
+                        <groupTitle>A2 Cross-Site Scripting (XSS)</groupTitle>
+                    </GroupingSection>
+                </Chart>
+            </IssueListing>
+        </SubSection>
+    </ReportSection>
+    <ReportSection optionalSubsections="true" enabled="true">
+        <Title>Results Outline</Title>
+        <SubSection enabled="true">
+            <Title>Vulnerabilties By OWASP Top Ten 2010</Title>
+            <Description>Results by OWASP Top Ten 2010</Description>
+            <IssueListing limit="-1" listing="true">
+                <Refinement>[OWASP Top Ten 2010]:!Not Covered</Refinement>
+                <Chart chartType="list">
+                    <Axis>OWASP Top Ten 2010</Axis>
+                    <MajorAttribute>Analysis</MajorAttribute>
+                    <GroupingSection count="55">
+                        <groupTitle>A1 Injection</groupTitle>
+                        <MajorAttributeSummary>
+                            <MetaInfo>
+<Name>Abstract</Name>
+<Value>Constructing a dynamic SQL statement with user input could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands. </Value>
+                            </MetaInfo>
+                            <MetaInfo>
+<Name>Explanation</Name>
+<Value>SQL injection errors occur when:
+
+1. Data enters a program from an untrusted source.
+
+In this case HP Fortify Static Code Analyzer could not determine that the source of the data is trusted.
+
+2. The data is used to dynamically construct a SQL query. 
+
+
+
+Example 1: The following code dynamically constructs and executes a SQL query that searches for items matching a specified name. The query restricts the items displayed to those where the owner matches the user name of the currently-authenticated user. 
+
+
+...
+	String userName = ctx.getAuthenticatedUserName();
+	String itemName = request.getParameter(&quot;itemName&quot;);
+	String query = &quot;SELECT * FROM items WHERE owner = '&quot; 
+				+ userName + &quot;' AND itemname = '&quot;  
+				+ itemName + &quot;'&quot;;
+	ResultSet rs = stmt.execute(query);
+	...
+
+
+The query that this code intends to execute follows:
+
+
+	SELECT * FROM items
+	WHERE owner = &lt;userName&gt;
+	AND itemname = &lt;itemName&gt;;
+
+
+However, because the query is constructed dynamically by concatenating a constant base query string and a user input string, the query only behaves correctly if itemName does not contain a single-quote character. If an attacker with the user name wiley enters the string &quot;name' OR 'a'='a&quot; for itemName, then the query becomes the following:
+
+
+	SELECT * FROM items
+	WHERE owner = 'wiley'
+	AND itemname = 'name' OR 'a'='a';
+
+
+The addition of the OR 'a'='a' condition causes the where clause to always evaluate to true, so the query becomes logically equivalent to the much simpler query:
+
+
+	SELECT * FROM items;
+
+
+This simplification of the query allows the attacker to bypass the requirement that the query only return items owned by the authenticated user; the query now returns all entries stored in the items table, regardless of their specified owner.
+
+Example 2: This example examines the effects of a different malicious value passed to the query constructed and executed in Example 1. If an attacker with the user name wiley enters the string &quot;name'; DELETE FROM items; --&quot; for itemName, then the query becomes the following two queries:
+
+
+	SELECT * FROM items 
+	WHERE owner = 'wiley'
+	AND itemname = 'name';
+
+	DELETE FROM items;
+
+	--'
+
+
+Many database servers, including Microsoft(R) SQL Server 2000, allow multiple SQL statements separated by semicolons to be executed at once. While this attack string results in an error on Oracle and other database servers that do not allow the batch-execution of statements separated by semicolons, on databases that do allow batch execution, this type of attack allows the attacker to execute arbitrary commands against the database. 
+
+Notice the trailing pair of hyphens (--), which specifies to most database servers that the remainder of the statement is to be treated as a comment and not executed [4]. In this case the comment character serves to remove the trailing single-quote left over from the modified query. On a database where comments are not allowed to be used in this way, the general attack could still be made effective using a trick similar to the one used in Example 1. If an attacker enters the string &quot;name'); DELETE FROM items; SELECT * FROM items WHERE 'a'='a&quot;, the following three valid statements will be created: 
+
+
+	SELECT * FROM items 
+	WHERE owner = 'wiley'
+	AND itemname = 'name';
+
+	DELETE FROM items;
+
+	SELECT * FROM items WHERE 'a'='a';
+
+
+One traditional approach to preventing SQL injection attacks is to handle them as an input validation problem and either accept only characters from a whitelist of safe values or identify and escape a blacklist of potentially malicious values. Whitelisting can be a very effective means of enforcing strict input validation rules, but parameterized SQL statements require less maintenance and can offer more guarantees with respect to security. As is almost always the case, blacklisting is riddled with loopholes that make it ineffective at preventing SQL injection attacks. For example, attackers can: 
+
+- Target fields that are not quoted
+
+- Find ways to bypass the need for certain escaped meta-characters
+
+- Use stored procedures to hide the injected meta-characters
+
+Manually escaping characters in input to SQL queries can help, but it will not make your application secure from SQL injection attacks. 
+
+Another solution commonly proposed for dealing with SQL injection attacks is to use stored procedures. Although stored procedures prevent some types of SQL injection attacks, they fail to protect against many others. Stored procedures typically help prevent SQL injection attacks by limiting the types of statements that can be passed to their parameters. However, there are many ways around the limitations and many interesting statements that can still be passed to stored procedures. Again, stored procedures can prevent some exploits, but they will not make your application secure against SQL injection attacks. 
+</Value>
+                            </MetaInfo>
+                            <MetaInfo>
+<Name>Recommendations</Name>
+<Value>The root cause of a SQL injection vulnerability is the ability of an attacker to change context in the SQL query, causing a value that the programmer intended to be interpreted as data to be interpreted as a command instead. When a SQL query is constructed, the programmer knows what should be interpreted as part of the command and what should be interpreted as data. Parameterized SQL statements can enforce this behavior by disallowing data-directed context changes and preventing nearly all SQL injection attacks. Parameterized SQL statements are constructed using strings of regular SQL, but when user-supplied data needs to be included, they create bind parameters, which are placeholders for data that is subsequently inserted. Bind parameters allow the program to explicitly specify to the database what should be treated as a command and what should be treated as data. When the program is ready to execute a statement, it specifies to the database the runtime values to use for the value of each of the bind parameters, without the risk of the data being interpreted as commands. 
+
+The previous example can be rewritten to use parameterized SQL statements (instead of concatenating user supplied strings) as follows:
+
+
+...
+String userName = ctx.getAuthenticatedUserName();
+String itemName = request.getParameter(&quot;itemName&quot;);
+String query =
+        &quot;SELECT * FROM items WHERE itemname=? AND owner=?&quot;; 
+PreparedStatement stmt = conn.prepareStatement(query);
+stmt.setString(1, itemName);
+stmt.setString(2, userName);
+ResultSet results = stmt.execute();
+...
+
+
+More complicated scenarios, often found in report generation code, require that user input affect the command structure of the SQL statement, such as the addition of dynamic constraints in the WHERE clause. Do not use this requirement to justify concatenating user input into query strings. Prevent SQL injection attacks where user input must affect statement command structure with a level of indirection: create a set of legitimate strings that correspond to different elements you might include in a SQL statement. When constructing a statement, use input from the user to select from this set of application-controlled values. 
+</Value>
+                            </MetaInfo>
+                            <MetaInfo>
+<Name>Tips</Name>
+<Value>1. A common mistake is to use parameterized SQL statements that are constructed by concatenating user-controlled strings. Of course, this defeats the purpose of using parameterized SQL statements. If you are not certain that the strings used to form statements are constants controlled by the application, do not assume that they are safe because they are not being executed directly as SQL strings. Thoroughly investigate all uses of user-controlled strings in SQL statements and verify that none can be used to modify the meaning of the query. 
+
+2. Data is untrustworthy if it originates from public non-final string fields of a class. These types of fields may be modified by an unknown source.
+
+3. Fortify RTA adds protection against this category.</Value>
+                            </MetaInfo>
+                            <AttributeValue>
+<Name>&lt;Unaudited&gt;</Name>
+<Count>55</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Not an Issue</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Reliability Issue</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Bad Practice</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Suspicious</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Exploitable</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                        </MajorAttributeSummary>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="695232ED7388640F16850A3B865FDA23">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 109 of ContentListingAction.java, the method extract() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>ContentListingAction.java</FileName>
+<FilePath>admin/content/ContentListingAction.java</FilePath>
+<LineStart>109</LineStart>
+<Snippet>        sql += &quot;order by content.contentLanguage.contentTitle &quot;;
+
+        query = em.createQuery(sql);
+        Date date = null;
+        query.setParameter(&quot;siteId&quot;, site.getSiteId());</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="4B673A45-9AD5-4CBA-945B-11A3702CDF57" iid="15293F5C632590441A654F4CF0E09B34">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 292 of Installer.java, the method upgradeDatabase() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>Installer.java</FileName>
+<FilePath>install/process/Installer.java</FilePath>
+<LineStart>292</LineStart>
+<Snippet>				if (databaseUpgradeRecord.getDbQuery() != null) {
+					logger.info(&quot;Query version &quot; + upgradeVersion + &quot; [&quot; + databaseUpgradeRecord.getDbQuery() + &quot;]&quot;);
+					connection.createStatement().executeUpdate(databaseUpgradeRecord.getDbQuery());
+				}
+				else {</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="581D9F488C8141ACA2747A0302A538B4">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 2142 of ContentApi.java, the method getDataInCategoryCounts() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>ContentApi.java</FileName>
+<FilePath>content/data/ContentApi.java</FilePath>
+<LineStart>2142</LineStart>
+<Snippet>		}
+		sql += &quot;)&quot;;
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteDomain.getSite().getSiteId());
+		count += (Long) query.getSingleResult();</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="0AA99FD57DB4EEE7AF6559E6DEC16180">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 252 of CategorySearchUtil.java, the method createSiteProfileClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>CategorySearchUtil.java</FileName>
+<FilePath>util/CategorySearchUtil.java</FilePath>
+<LineStart>252</LineStart>
+<Snippet>		
+		sql = NamedQuery.getInstance().getQuery(&quot;category.item.language.create&quot;);
+		Query query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.setParameter(&quot;siteProfileClass&quot;, defaultSiteProfileClass);</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="FE639C00E6A420F741C9BF1BD4CAF3A0">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 258 of SectionSearchUtil.java, the method createSiteProfileClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SectionSearchUtil.java</FileName>
+<FilePath>util/SectionSearchUtil.java</FilePath>
+<LineStart>258</LineStart>
+<Snippet>		
+		sql = NamedQuery.getInstance().getQuery(&quot;section.content.language.create&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.setParameter(&quot;siteProfileClass&quot;, defaultSiteProfileClass);</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="58925B50931D83963C89027B9A90B542">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 297 of SectionSearchUtil.java, the method createSiteCurrencyClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SectionSearchUtil.java</FileName>
+<FilePath>util/SectionSearchUtil.java</FilePath>
+<LineStart>297</LineStart>
+<Snippet>
+		sql = NamedQuery.getInstance().getQuery(&quot;section.item.price.create5&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.setParameter(&quot;siteCurrencyClassId1&quot;, defaultSiteCurrencyClass);</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="FE639C00E6A420F741C9BF1BD4CAF3A1">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 253 of SectionSearchUtil.java, the method createSiteProfileClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SectionSearchUtil.java</FileName>
+<FilePath>util/SectionSearchUtil.java</FilePath>
+<LineStart>253</LineStart>
+<Snippet>	
+		sql = NamedQuery.getInstance().getQuery(&quot;section.item.language.create1&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteProfileClassId&quot;, siteProfileClass.getSiteProfileClassId());
+		query.executeUpdate();</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="58925B50931D83963C89027B9A90B543">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 291 of SectionSearchUtil.java, the method createSiteCurrencyClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SectionSearchUtil.java</FileName>
+<FilePath>util/SectionSearchUtil.java</FilePath>
+<LineStart>291</LineStart>
+<Snippet>		
+		sql = NamedQuery.getInstance().getQuery(&quot;section.item.price.create4&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.setParameter(&quot;siteCurrencyClassId&quot;, defaultSiteCurrencyClass);</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="58925B50931D83963C89027B9A90B540">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 310 of SectionSearchUtil.java, the method createSiteCurrencyClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SectionSearchUtil.java</FileName>
+<FilePath>util/SectionSearchUtil.java</FilePath>
+<LineStart>310</LineStart>
+<Snippet>	
+		sql = NamedQuery.getInstance().getQuery(&quot;section.item.price.create2&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.setParameter(&quot;siteCurrencyClassId1&quot;, defaultSiteCurrencyClass);</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="9B5F0161-88EC-4104-B70B-0182FEB53BF2" iid="BDF6427EEDF36892D3AD000008CB0ED6">
+                            <Category>SQL Injection</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 41 of DatabaseUpgradeProcedure.java, the method createDefaultShippingRegion() invokes a SQL query built using unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>DatabaseUpgradeProcedure.java</FileName>
+<FilePath>xml/databaseUpgrade/DatabaseUpgradeProcedure.java</FilePath>
+<LineStart>41</LineStart>
+<Snippet>				  &quot;and     system_record = 'Y'&quot;;
+			Statement countStatement = connection.createStatement();
+			ResultSet shippingRegionResult = countStatement.executeQuery(sql);
+			shippingRegionResult.first();
+			int count = shippingRegionResult.getInt(1);</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>DatabaseUpgradeProcedure.java</FileName>
+<FilePath>xml/databaseUpgrade/DatabaseUpgradeProcedure.java</FilePath>
+<LineStart>32</LineStart>
+<Snippet>			  &quot;where   site_id != '_system' &quot; +
+			  &quot;and     system_record = 'Y'&quot;;
+		ResultSet result = select.executeQuery(sql);
+		while (result.next()) {
+			String siteId = result.getString(&quot;site_id&quot;);</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="31FAA947E11FD4051E1F2D1C26D91CA7">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 272 of SectionSearchUtil.java, the method removeSiteProfileClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SectionSearchUtil.java</FileName>
+<FilePath>util/SectionSearchUtil.java</FilePath>
+<LineStart>272</LineStart>
+<Snippet>		EntityManager em = JpaConnection.getInstance().getCurrentEntityManager();
+		String sql = NamedQuery.getInstance().getQuery(&quot;section.item.language.remove&quot;);
+		Query query = em.createQuery(sql);
+		
+		query.setParameter(&quot;siteId&quot;, siteId);</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="6B10E20E4F2DCC82C61601E0721712CF">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 204 of SiteMap.java, the method generateHome() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SiteMap.java</FileName>
+<FilePath>sitemap/SiteMap.java</FilePath>
+<LineStart>204</LineStart>
+<Snippet>		
+		sql = NamedQuery.getInstance().getQuery(&quot;content.mostViewed&quot;);
+		query = em.createQuery(sql);
+		query.setMaxResults(recordCount);
+		query.setParameter(&quot;siteId&quot;, siteDomain.getSite().getSiteId());</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="4B673A45-9AD5-4CBA-945B-11A3702CDF57" iid="FF6497707E9C44D42C10470832FF0348">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 252 of Installer.java, the method installDatabase() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>Installer.java</FileName>
+<FilePath>install/process/Installer.java</FilePath>
+<LineStart>252</LineStart>
+<Snippet>			}
+			System.out.println(sql);
+			connection.createStatement().executeUpdate(sql);
+    	}
+</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="0AA99FD57DB4EEE7AF6559E6DEC1617D">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 269 of CategorySearchUtil.java, the method createSiteProfileClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>CategorySearchUtil.java</FileName>
+<FilePath>util/CategorySearchUtil.java</FilePath>
+<LineStart>269</LineStart>
+<Snippet>	
+		sql = NamedQuery.getInstance().getQuery(&quot;category.content.language.create1&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteProfileClassId&quot;, siteProfileClass.getSiteProfileClassId());
+		query.executeUpdate();</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="4B673A45-9AD5-4CBA-945B-11A3702CDF57" iid="F2E14EC3D0E177F985436CEAED87FBE0">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 212 of DatabaseUpgradeProcedure.java, the method copyImportExport() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>DatabaseUpgradeProcedure.java</FileName>
+<FilePath>xml/databaseUpgrade/DatabaseUpgradeProcedure.java</FilePath>
+<LineStart>212</LineStart>
+<Snippet>						  &quot;from    ie_profile_detail &quot; + 
+						  &quot;where   ie_profile_header_id = '&quot; + ieProfileSet.getShort(&quot;ie_profile_header_id&quot;) + &quot;'&quot;;
+					ResultSet ieProfileDetailSet = connection.createStatement().executeQuery(sql);
+					while (ieProfileDetailSet.next()) {
+						insertDetailStatement.setString(1, ieProfileDetailSet.getString(&quot;ie_profile_field_name&quot;));</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="EEE9333C93764D56609B653FA9BB4367">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 1385 of ContentApi.java, the method getTopRatedContent() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>ContentApi.java</FileName>
+<FilePath>content/data/ContentApi.java</FilePath>
+<LineStart>1385</LineStart>
+<Snippet>		EntityManager em = JpaConnection.getInstance().getCurrentEntityManager();
+		String sql = NamedQuery.getInstance().getQuery(&quot;content.topRated&quot;);
+		Query query = em.createQuery(sql);
+		query.setMaxResults(count);
+		query.setParameter(&quot;siteId&quot;, siteDomain.getSite().getSiteId());</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="17576412F5C680F0174498D34718D7FE">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 338 of SectionSearchUtil.java, the method removeSiteCurrencyClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SectionSearchUtil.java</FileName>
+<FilePath>util/SectionSearchUtil.java</FilePath>
+<LineStart>338</LineStart>
+<Snippet>		EntityManager em = JpaConnection.getInstance().getCurrentEntityManager();
+		String sql = NamedQuery.getInstance().getQuery(&quot;section.item.price.remove&quot;);
+		Query query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.setParameter(&quot;siteCurrencyClass&quot;, siteCurrencyClass);</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="31FAA947E11FD4051E1F2D1C26D91CA6">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 279 of SectionSearchUtil.java, the method removeSiteProfileClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SectionSearchUtil.java</FileName>
+<FilePath>util/SectionSearchUtil.java</FilePath>
+<LineStart>279</LineStart>
+<Snippet>		
+		sql = NamedQuery.getInstance().getQuery(&quot;section.content.language.remove&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.setParameter(&quot;siteProfileClass&quot;, siteProfileClass);</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="B783F5822810FA1FDCEDB06E9E416E71">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 133 of ItemListingAction.java, the method extract() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>ItemListingAction.java</FileName>
+<FilePath>admin/item/ItemListingAction.java</FilePath>
+<LineStart>133</LineStart>
+<Snippet>        }
+
+        query = em.createQuery(sql);
+        Date date = null;
+        query.setParameter(&quot;siteId&quot;, site.getSiteId());</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="6B10E20E4F2DCC82C61601E0721712CE">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 216 of SiteMap.java, the method generateHome() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SiteMap.java</FileName>
+<FilePath>sitemap/SiteMap.java</FilePath>
+<LineStart>216</LineStart>
+<Snippet>		
+		sql = NamedQuery.getInstance().getQuery(&quot;item.mostPopular&quot;);
+		query = em.createQuery(sql);
+		query.setMaxResults(recordCount);
+		query.setParameter(&quot;siteId&quot;, siteDomain.getSite().getSiteId());</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="F2851023E4394D7A2FB1B6330278C116">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 322 of CategorySearchUtil.java, the method createSiteCurrencyClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>CategorySearchUtil.java</FileName>
+<FilePath>util/CategorySearchUtil.java</FilePath>
+<LineStart>322</LineStart>
+<Snippet>
+		sql = NamedQuery.getInstance().getQuery(&quot;category.item.price.create3&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.setParameter(&quot;siteCurrencyClassId1&quot;, defaultSiteCurrencyClass.getSiteCurrencyClassId());</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="F2851023E4394D7A2FB1B6330278C114">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 334 of CategorySearchUtil.java, the method createSiteCurrencyClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>CategorySearchUtil.java</FileName>
+<FilePath>util/CategorySearchUtil.java</FilePath>
+<LineStart>334</LineStart>
+<Snippet>
+		sql = NamedQuery.getInstance().getQuery(&quot;category.item.price.create1&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteCurrencyClassId&quot;, siteCurrencyClass.getSiteCurrencyClassId());
+		query.executeUpdate();</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="58925B50931D83963C89027B9A90B53D">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 329 of SectionSearchUtil.java, the method createSiteCurrencyClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SectionSearchUtil.java</FileName>
+<FilePath>util/SectionSearchUtil.java</FilePath>
+<LineStart>329</LineStart>
+<Snippet>
+		sql = NamedQuery.getInstance().getQuery(&quot;section.item.price.create1&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteCurrencyClassId&quot;, siteCurrencyClass.getSiteCurrencyClassId());
+		query.executeUpdate();</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="9B5F0161-88EC-4104-B70B-0182FEB53BF2" iid="28648089960010602FE33F660F2C63A7">
+                            <Category>SQL Injection</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 71 of DatabaseUpgradeProcedure.java, the method createCustomerClass() invokes a SQL query built using unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>DatabaseUpgradeProcedure.java</FileName>
+<FilePath>xml/databaseUpgrade/DatabaseUpgradeProcedure.java</FilePath>
+<LineStart>71</LineStart>
+<Snippet>				  &quot;where   site_id = '&quot; + siteId + &quot;'&quot;;
+			Statement countStatement = connection.createStatement();
+			ResultSet customerClassResult = countStatement.executeQuery(sql);
+			customerClassResult.first();
+			int count = customerClassResult.getInt(1);</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>DatabaseUpgradeProcedure.java</FileName>
+<FilePath>xml/databaseUpgrade/DatabaseUpgradeProcedure.java</FilePath>
+<LineStart>63</LineStart>
+<Snippet>			  &quot;where   site_id != '_system' &quot; +
+			  &quot;and     system_record = 'Y'&quot;;
+		ResultSet result = select.executeQuery(sql);
+		while (result.next()) {
+			String siteId = result.getString(&quot;site_id&quot;);</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="DD2BC6DFE7973A57E57165F40744BB25">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 1707 of ContentApi.java, the method getCategory() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>ContentApi.java</FileName>
+<FilePath>content/data/ContentApi.java</FilePath>
+<LineStart>1707</LineStart>
+<Snippet>    		break;
+    	}
+    	query = em.createQuery(sql);
+    	query.setParameter(&quot;siteId&quot;, siteDomain.getSite().getSiteId());
+    	query.setParameter(&quot;catId&quot;, category.getCatId());</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="58925B50931D83963C89027B9A90B53F">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 317 of SectionSearchUtil.java, the method createSiteCurrencyClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SectionSearchUtil.java</FileName>
+<FilePath>util/SectionSearchUtil.java</FilePath>
+<LineStart>317</LineStart>
+<Snippet>
+		sql = NamedQuery.getInstance().getQuery(&quot;section.item.price.create3&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.setParameter(&quot;siteCurrencyClassId1&quot;, defaultSiteCurrencyClass);</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="98D8F2FD9887559E4A7C8BD31F608EC0">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 343 of CategorySearchUtil.java, the method removeSiteCurrencyClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>CategorySearchUtil.java</FileName>
+<FilePath>util/CategorySearchUtil.java</FilePath>
+<LineStart>343</LineStart>
+<Snippet>		EntityManager em = JpaConnection.getInstance().getCurrentEntityManager();
+		String sql = NamedQuery.getInstance().getQuery(&quot;category.item.price.remove&quot;);
+		Query query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.setParameter(&quot;siteCurrencyClass&quot;, siteCurrencyClass);</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="E04D3E1F-2D8C-400A-BB55-7DA143F987E3" iid="CAEA3C899FC42B3C84007C08B8583C51">
+                            <Category>SQL Injection</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 238 of Installer.java, the method installDatabase() invokes a SQL query built using unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>Installer.java</FileName>
+<FilePath>install/process/Installer.java</FilePath>
+<LineStart>238</LineStart>
+<Snippet>    			sql = sql.replaceAll(&quot;\t&quot;, &quot; &quot;);
+	    		System.out.println(&quot;[&quot; + sql + &quot;]&quot;);
+    			connection.createStatement().executeUpdate(sql);
+    			sql = &quot;&quot;;
+    		}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>Installer.java</FileName>
+<FilePath>install/process/Installer.java</FilePath>
+<LineStart>213</LineStart>
+<Snippet>    	String line = null;
+    	while (true) {
+    		line = reader.readLine();
+    		if (line == null) {
+    			break;</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="845F34C8DBA5A1CD1336CA85B2FAD91B">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 1405 of ContentApi.java, the method getMostViewedContent() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>ContentApi.java</FileName>
+<FilePath>content/data/ContentApi.java</FilePath>
+<LineStart>1405</LineStart>
+<Snippet>		EntityManager em = JpaConnection.getInstance().getCurrentEntityManager();
+		String sql = NamedQuery.getInstance().getQuery(&quot;content.mostViewed&quot;);
+		Query query = em.createQuery(sql);
+		query.setMaxResults(count);
+		query.setParameter(&quot;siteId&quot;, siteDomain.getSite().getSiteId());</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="4B673A45-9AD5-4CBA-945B-11A3702CDF57" iid="FF6497707E9C44D42C10470832FF0347">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 263 of Installer.java, the method installDatabase() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>Installer.java</FileName>
+<FilePath>install/process/Installer.java</FilePath>
+<LineStart>263</LineStart>
+<Snippet>    	sql = &quot;update  user &quot; +
+    		  &quot;set     user_password = '&quot; + userPassword + &quot;'&quot;;
+    	connection.createStatement().executeUpdate(sql);
+	}
+	</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="4B673A45-9AD5-4CBA-945B-11A3702CDF57" iid="FF6497707E9C44D42C10470832FF034A">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 203 of Installer.java, the method installDatabase() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>Installer.java</FileName>
+<FilePath>install/process/Installer.java</FilePath>
+<LineStart>203</LineStart>
+<Snippet>				continue;
+			}
+			connection.createStatement().executeUpdate(sql);
+    	}
+    	/*</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="6E65A1C3-12CD-4C93-A10A-324931825154" iid="A1EE38E06A1DCFAA37C857243FF90233">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 152 of Indexer.java, the method executeQuery() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>Indexer.java</FileName>
+<FilePath>search/Indexer.java</FilePath>
+<LineStart>152</LineStart>
+<Snippet>		EntityManager em = JpaConnection.getInstance().getCurrentEntityManager();
+		try {
+			Query query = em.createNativeQuery(sql);
+			query.executeUpdate();
+		}</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="724BA9B206488A47DE2AFFED6B9F9621">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 1431 of ContentApi.java, the method getMostPopularItems() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>ContentApi.java</FileName>
+<FilePath>content/data/ContentApi.java</FilePath>
+<LineStart>1431</LineStart>
+<Snippet>			sql = NamedQuery.getInstance().getQuery(&quot;item.mostPopular.noshare&quot;);
+		}
+		Query query = em.createQuery(sql);
+		query.setMaxResults(count);
+		query.setParameter(&quot;siteId&quot;, siteDomain.getSite().getSiteId());</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="45D423D895A8F9E44D3B0F92B72F2A06">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 284 of CategorySearchUtil.java, the method removeSiteProfileClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>CategorySearchUtil.java</FileName>
+<FilePath>util/CategorySearchUtil.java</FilePath>
+<LineStart>284</LineStart>
+<Snippet>		
+		sql = NamedQuery.getInstance().getQuery(&quot;category.content.language.remove&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.setParameter(&quot;siteProfileClass&quot;, siteProfileClass);</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="FE639C00E6A420F741C9BF1BD4CAF3A2">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 247 of SectionSearchUtil.java, the method createSiteProfileClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SectionSearchUtil.java</FileName>
+<FilePath>util/SectionSearchUtil.java</FilePath>
+<LineStart>247</LineStart>
+<Snippet>		
+		sql = NamedQuery.getInstance().getQuery(&quot;section.item.language.create&quot;);
+		Query query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.setParameter(&quot;siteProfileClass&quot;, defaultSiteProfileClass);</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="58925B50931D83963C89027B9A90B541">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 303 of SectionSearchUtil.java, the method createSiteCurrencyClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SectionSearchUtil.java</FileName>
+<FilePath>util/SectionSearchUtil.java</FilePath>
+<LineStart>303</LineStart>
+<Snippet>
+		sql = NamedQuery.getInstance().getQuery(&quot;section.item.price.create&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.setParameter(&quot;siteCurrencyClassId1&quot;, defaultSiteCurrencyClass);</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="581D9F488C8141ACA2747A0302A538B5">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 2121 of ContentApi.java, the method getDataInCategoryCounts() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>ContentApi.java</FileName>
+<FilePath>content/data/ContentApi.java</FilePath>
+<LineStart>2121</LineStart>
+<Snippet>		}
+		sql += &quot;)&quot;;
+		Query query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteDomain.getSite().getSiteId());
+		if (siteDomain.getSite().getShareInventory() != Constants.VALUE_YES) {</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="45D423D895A8F9E44D3B0F92B72F2A07">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 277 of CategorySearchUtil.java, the method removeSiteProfileClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>CategorySearchUtil.java</FileName>
+<FilePath>util/CategorySearchUtil.java</FilePath>
+<LineStart>277</LineStart>
+<Snippet>		EntityManager em = JpaConnection.getInstance().getCurrentEntityManager();
+		String sql = NamedQuery.getInstance().getQuery(&quot;category.item.language.remove&quot;);
+		Query query = em.createQuery(sql);
+		
+		query.setParameter(&quot;siteId&quot;, siteId);</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="E04D3E1F-2D8C-400A-BB55-7DA143F987E3" iid="8B1E81BFD14B58E37503EEF913A5E60D">
+                            <Category>SQL Injection</Category>
+                            <Folder>High</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 166 of Installer.java, the method setDatabaseCreated() invokes a SQL query built using unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>High</Friority>
+                            <Primary>
+<FileName>Installer.java</FileName>
+<FilePath>install/process/Installer.java</FilePath>
+<LineStart>166</LineStart>
+<Snippet>			  	     &quot;into   control &quot; +
+			         &quot;values ('dbVersion', '&quot; + ApplicationGlobal.getDbVersion() + &quot;')&quot;;
+    	connection.createStatement().executeUpdate(sql);
+	}
+	</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>Initializer.java</FileName>
+<FilePath>system/Initializer.java</FilePath>
+<LineStart>87</LineStart>
+<Snippet>    	
+		ApplicationGlobal.setVersion(config.getInitParameter(&quot;version&quot;));
+		ApplicationGlobal.setDbVersion(config.getInitParameter(&quot;dbVersion&quot;));
+		
+		String debug = config.getInitParameter(Constants.CONFIG_PROPERTY_LOCALTESTING);</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="DD2BC6DFE7973A57E57165F40744BB26">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 1663 of ContentApi.java, the method getCategory() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>ContentApi.java</FileName>
+<FilePath>content/data/ContentApi.java</FilePath>
+<LineStart>1663</LineStart>
+<Snippet>    	
+    	Vector&lt;DataInfo&gt; dataVector = new Vector&lt;DataInfo&gt;();
+    	Query query = em.createQuery(sql);
+    	query.setParameter(&quot;siteId&quot;, siteDomain.getSite().getSiteId());
+    	if (siteDomain.getSite().getShareInventory() != Constants.VALUE_YES) {</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="F2851023E4394D7A2FB1B6330278C118">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 308 of CategorySearchUtil.java, the method createSiteCurrencyClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>CategorySearchUtil.java</FileName>
+<FilePath>util/CategorySearchUtil.java</FilePath>
+<LineStart>308</LineStart>
+<Snippet>
+		sql = NamedQuery.getInstance().getQuery(&quot;category.item.price.create&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.setParameter(&quot;siteCurrencyClassId1&quot;, defaultSiteCurrencyClass.getSiteCurrencyClassId());</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="FE639C00E6A420F741C9BF1BD4CAF39F">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 264 of SectionSearchUtil.java, the method createSiteProfileClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SectionSearchUtil.java</FileName>
+<FilePath>util/SectionSearchUtil.java</FilePath>
+<LineStart>264</LineStart>
+<Snippet>	
+		sql = NamedQuery.getInstance().getQuery(&quot;section.content.language.create1&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteProfileClassId&quot;, siteProfileClass.getSiteProfileClassId());
+		query.executeUpdate();</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="58925B50931D83963C89027B9A90B53E">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 324 of SectionSearchUtil.java, the method createSiteCurrencyClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SectionSearchUtil.java</FileName>
+<FilePath>util/SectionSearchUtil.java</FilePath>
+<LineStart>324</LineStart>
+<Snippet>
+		sql = NamedQuery.getInstance().getQuery(&quot;section.item.price.create6&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.executeUpdate();</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="F2851023E4394D7A2FB1B6330278C119">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 302 of CategorySearchUtil.java, the method createSiteCurrencyClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>CategorySearchUtil.java</FileName>
+<FilePath>util/CategorySearchUtil.java</FilePath>
+<LineStart>302</LineStart>
+<Snippet>
+		sql = NamedQuery.getInstance().getQuery(&quot;category.item.price.create5&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.setParameter(&quot;siteCurrencyClassId1&quot;, defaultSiteCurrencyClass.getSiteCurrencyClassId());</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="6B10E20E4F2DCC82C61601E0721712D0">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 192 of SiteMap.java, the method generateHome() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SiteMap.java</FileName>
+<FilePath>sitemap/SiteMap.java</FilePath>
+<LineStart>192</LineStart>
+<Snippet>		
+		String sql = NamedQuery.getInstance().getQuery(&quot;content.topRated&quot;);
+		Query query = em.createQuery(sql);
+		query.setMaxResults(recordCount);
+		query.setParameter(&quot;siteId&quot;, siteDomain.getSite().getSiteId());</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="F2851023E4394D7A2FB1B6330278C117">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 315 of CategorySearchUtil.java, the method createSiteCurrencyClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>CategorySearchUtil.java</FileName>
+<FilePath>util/CategorySearchUtil.java</FilePath>
+<LineStart>315</LineStart>
+<Snippet>	
+		sql = NamedQuery.getInstance().getQuery(&quot;category.item.price.create2&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.setParameter(&quot;siteCurrencyClassId1&quot;, defaultSiteCurrencyClass.getSiteCurrencyClassId());</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="0AA99FD57DB4EEE7AF6559E6DEC1617F">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 258 of CategorySearchUtil.java, the method createSiteProfileClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>CategorySearchUtil.java</FileName>
+<FilePath>util/CategorySearchUtil.java</FilePath>
+<LineStart>258</LineStart>
+<Snippet>	
+		sql = NamedQuery.getInstance().getQuery(&quot;category.item.language.create1&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteProfileClassId&quot;, siteProfileClass.getSiteProfileClassId());
+		query.executeUpdate();</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="F2851023E4394D7A2FB1B6330278C115">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 329 of CategorySearchUtil.java, the method createSiteCurrencyClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>CategorySearchUtil.java</FileName>
+<FilePath>util/CategorySearchUtil.java</FilePath>
+<LineStart>329</LineStart>
+<Snippet>
+		sql = NamedQuery.getInstance().getQuery(&quot;category.item.price.create6&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.executeUpdate();</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="5870A527-08AF-452C-84B2-7F6C360CA7EF" iid="9CD267733260D6DBD6BF5E63E62AEAEB">
+                            <Category>SQL Injection</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 194 of DatabaseUpgradeProcedure.java, the method copyImportExport() invokes a SQL query built using unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>DatabaseUpgradeProcedure.java</FileName>
+<FilePath>xml/databaseUpgrade/DatabaseUpgradeProcedure.java</FilePath>
+<LineStart>194</LineStart>
+<Snippet>					  &quot;and     ie_profile_header_name = ? &quot; +
+					  &quot;and     ie_profile_type = ?&quot;;
+				PreparedStatement countStatement = connection.prepareStatement(sql);
+				countStatement.setString(1, ieProfileHeaderName);
+				countStatement.setString(2, ieProfileType);</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>DatabaseUpgradeProcedure.java</FileName>
+<FilePath>xml/databaseUpgrade/DatabaseUpgradeProcedure.java</FilePath>
+<LineStart>177</LineStart>
+<Snippet>			  &quot;where   site_id != '_system' &quot; +
+			  &quot;and     system_record != 'Y'&quot;;
+		ResultSet result = select.executeQuery(sql);
+		while (result.next()) {
+			String siteId = result.getString(&quot;site_id&quot;);</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="F2851023E4394D7A2FB1B6330278C11A">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 296 of CategorySearchUtil.java, the method createSiteCurrencyClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>CategorySearchUtil.java</FileName>
+<FilePath>util/CategorySearchUtil.java</FilePath>
+<LineStart>296</LineStart>
+<Snippet>		
+		sql = NamedQuery.getInstance().getQuery(&quot;category.item.price.create4&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.setParameter(&quot;siteCurrencyClassId&quot;, defaultSiteCurrencyClass.getSiteCurrencyClassId());</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="6B0E3103-9BA7-41DB-83B6-D191BE7B830A" iid="81BF9A3B2E1B05A2784B3B0D257B981E">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 94 of CustomerListingAction.java, extract() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>CustomerListingAction.java</FileName>
+<FilePath>admin/customer/CustomerListingAction.java</FilePath>
+<LineStart>94</LineStart>
+<Snippet>        sql += &quot;order by customerAddress.custLastName&quot;;
+
+        query = em.createQuery(sql);
+        query.setParameter(&quot;siteId&quot;, site.getSiteId());
+        if (form.getSrCustFirstName().length() &gt; 0) {</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>CustomerListingAction.java</FileName>
+<FilePath>admin/customer/CustomerListingAction.java</FilePath>
+<LineStart>68</LineStart>
+<Snippet>        			 &quot;where  customer.site.siteId = :siteId &quot; +
+        			 &quot;and    customerAddress.custAddressType = 'C' &quot;;
+        SubSiteDisplayForm subSites[] = form.getSubSites();
+    	sql += &quot;and    customer.siteDomain.siteDomainId in (null&quot;;
+    	int index = 0;</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="6E65A1C3-12CD-4C93-A10A-324931825154" iid="0610FF25F40B09A485D7434B5391444E">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 102 of ReportEngine.java, the method getReportParameterOptions() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>ReportEngine.java</FileName>
+<FilePath>admin/report/ReportEngine.java</FilePath>
+<LineStart>102</LineStart>
+<Snippet>			queryText += &quot; order by &quot; + sortByColumn;
+			queryText += &quot; &quot; + handle.getSortDirection();
+			Query query = em.createNativeQuery(queryText);
+			Iterator&lt;?&gt; iterator = query.getResultList().iterator();
+			while (iterator.hasNext()) {</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="5870A527-08AF-452C-84B2-7F6C360CA7EF" iid="054E4D1E007A1F8298D8C1188CF3DABF">
+                            <Category>SQL Injection</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 142 of DatabaseUpgradeProcedure.java, the method copyReports() invokes a SQL query built using unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>DatabaseUpgradeProcedure.java</FileName>
+<FilePath>xml/databaseUpgrade/DatabaseUpgradeProcedure.java</FilePath>
+<LineStart>142</LineStart>
+<Snippet>					  &quot;where   site_id = '&quot; + siteId + &quot;' &quot; +
+					  &quot;and     report_name = ?&quot;;
+				PreparedStatement countStatement = connection.prepareStatement(sql);
+				countStatement.setString(1, reportName);
+				ResultSet reportResult = countStatement.executeQuery();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>DatabaseUpgradeProcedure.java</FileName>
+<FilePath>xml/databaseUpgrade/DatabaseUpgradeProcedure.java</FilePath>
+<LineStart>127</LineStart>
+<Snippet>			  &quot;where   site_id != '_system' &quot; +
+			  &quot;and     system_record != 'Y'&quot;;
+		ResultSet result = select.executeQuery(sql);
+		while (result.next()) {
+			String siteId = result.getString(&quot;site_id&quot;);</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="966866DD395519F6CF8385D5575D1E2F">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 2068 of ContentApi.java, the method getDataInAttributeOptionCount() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>ContentApi.java</FileName>
+<FilePath>content/data/ContentApi.java</FilePath>
+<LineStart>2068</LineStart>
+<Snippet>		sql += &quot; &quot; + NamedQuery.getInstance().getQuery(&quot;category.item.language.suffix&quot;);
+
+    	Query query = em.createQuery(sql);
+    	query.setParameter(&quot;siteId&quot;, siteDomain.getSite().getSiteId());
+    	if (siteDomain.getSite().getShareInventory() != Constants.VALUE_YES) {</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="97CC66FE-E166-485A-B22B-55D6A97F610C" iid="0AA99FD57DB4EEE7AF6559E6DEC1617E">
+                            <Category>SQL Injection: Persistence</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 263 of CategorySearchUtil.java, the method createSiteProfileClass() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>CategorySearchUtil.java</FileName>
+<FilePath>util/CategorySearchUtil.java</FilePath>
+<LineStart>263</LineStart>
+<Snippet>		
+		sql = NamedQuery.getInstance().getQuery(&quot;category.content.language.create&quot;);
+		query = em.createQuery(sql);
+		query.setParameter(&quot;siteId&quot;, siteId);
+		query.setParameter(&quot;siteProfileClass&quot;, defaultSiteProfileClass);</Snippet>
+                            </Primary>
+                        </Issue>
+                    </GroupingSection>
+                    <GroupingSection count="26">
+                        <groupTitle>A2 Cross-Site Scripting (XSS)</groupTitle>
+                        <MajorAttributeSummary>
+                            <MetaInfo>
+<Name>Abstract</Name>
+<Value>Sending unvalidated data to a web browser can result in the browser executing malicious code.</Value>
+                            </MetaInfo>
+                            <MetaInfo>
+<Name>Explanation</Name>
+<Value>Cross-site scripting (XSS) vulnerabilities occur when:
+
+1. Data enters a web application through an untrusted source. In the case of Reflected XSS, the untrusted source is typically a web request, while in the case of Persisted (also known as Stored) XSS it is typically a database or other back-end datastore.
+
+
+2. The data is included in dynamic content that is sent to a web user without being validated for malicious code. 
+
+The malicious content sent to the web browser often takes the form of a segment of JavaScript, but may also include HTML, Flash or any other type of code that the browser may execute. The variety of attacks based on XSS is almost limitless, but they commonly include transmitting private data like cookies or other session information to the attacker, redirecting the victim to web content controlled by the attacker, or performing other malicious operations on the user's machine under the guise of the vulnerable site.
+
+Example 1: The following JSP code segment reads an employee ID, eid, from an HTTP request and displays it to the user. 
+
+
+&lt;% String eid = request.getParameter(&quot;eid&quot;); %&gt; 
+...
+Employee ID: &lt;%= eid %&gt;
+
+
+The code in this example operates correctly if eid contains only standard alphanumeric text. If eid has a value that includes meta-characters or source code, then the code will be executed by the web browser as it displays the HTTP response.
+
+Initially this might not appear to be much of a vulnerability. After all, why would someone enter a URL that causes malicious code to run on their own computer? The real danger is that an attacker will create the malicious URL, then use e-mail or social engineering tricks to lure victims into visiting a link to the URL. When victims click the link, they unwittingly reflect the malicious content through the vulnerable web application back to their own computers. This mechanism of exploiting vulnerable web applications is known as Reflected XSS.
+
+Example 2: The following JSP code segment queries a database for an employee with a given ID and prints the corresponding employee's name.
+
+ 
+&lt;%... 
+ Statement stmt = conn.createStatement();
+ ResultSet rs = stmt.executeQuery(&quot;select * from emp where id=&quot;+eid);
+ if (rs != null) {
+  rs.next(); 
+  String name = rs.getString(&quot;name&quot;);
+%&gt;
+
+Employee Name: &lt;%= name %&gt;
+
+
+As in Example 1, this code functions correctly when the values of name are well-behaved, but it does nothing to prevent exploits if they are not. Again, this code can appear less dangerous because the value of name is read from a database, whose contents are apparently managed by the application. However, if the value of name originates from user-supplied data, then the database can be a conduit for malicious content. Without proper input validation on all data stored in the database, an attacker can execute malicious commands in the user's web browser. This type of exploit, known as Persistent (or Stored) XSS, is particularly insidious because the indirection caused by the data store makes it more difficult to identify the threat and increases the possibility that the attack will affect multiple users. XSS got its start in this form with web sites that offered a &quot;guestbook&quot; to visitors. Attackers would include JavaScript in their guestbook entries, and all subsequent visitors to the guestbook page would execute the malicious code.
+
+As the examples demonstrate, XSS vulnerabilities are caused by code that includes unvalidated data in an HTTP response. There are three vectors by which an XSS attack can reach a victim:
+
+- As in Example 1, data is read directly from the HTTP request and reflected back in the HTTP response. Reflected XSS exploits occur when an attacker causes a user to supply dangerous content to a vulnerable web application, which is then reflected back to the user and executed by the web browser. The most common mechanism for delivering malicious content is to include it as a parameter in a URL that is posted publicly or e-mailed directly to victims. URLs constructed in this manner constitute the core of many phishing schemes, whereby an attacker convinces victims to visit a URL that refers to a vulnerable site. After the site reflects the attacker's content back to the user, the content is executed and proceeds to transfer private information, such as cookies that may include session information, from the user's machine to the attacker or perform other nefarious activities.
+
+- As in Example 2, the application stores dangerous data in a database or other trusted data store. The dangerous data is subsequently read back into the application and included in dynamic content. Persistent XSS exploits occur when an attacker injects dangerous content into a data store that is later read and included in dynamic content. From an attacker's perspective, the optimal place to inject malicious content is in an area that is displayed to either many users or particularly interesting users. Interesting users typically have elevated privileges in the application or interact with sensitive data that is valuable to the attacker. If one of these users executes malicious content, the attacker may be able to perform privileged operations on behalf of the user or gain access to sensitive data belonging to the user.
+
+- A source outside the application stores dangerous data in a database or other data store, and the dangerous data is subsequently read back into the application as trusted data and included in dynamic content.</Value>
+                            </MetaInfo>
+                            <MetaInfo>
+<Name>Recommendations</Name>
+<Value>The solution to XSS is to ensure that validation occurs in the correct places and checks for the correct properties.
+
+Since XSS vulnerabilities occur when an application includes malicious data in its output, one logical approach is to validate data immediately before it leaves the application. However, because web applications often have complex and intricate code for generating dynamic content, this method is prone to errors of omission (missing validation). An effective way to mitigate this risk is to also perform input validation for XSS.
+
+Web applications must validate their input to prevent other vulnerabilities, such as SQL injection, so augmenting an application's existing input validation mechanism to include checks for XSS is generally relatively easy. Despite its value, input validation for XSS does not take the place of rigorous output validation. An application may accept input through a shared data store or other trusted source, and that data store may accept input from a source that does not perform adequate input validation. Therefore, the application cannot implicitly rely on the safety of this or any other data. This means the best way to prevent XSS vulnerabilities is to validate everything that enters the application or leaves the application destined for the user. 
+
+The most secure approach to validation for XSS is to create a whitelist of safe characters that are allowed to appear in HTTP content and accept input composed exclusively of characters in the approved set. For example, a valid username might only include alpha-numeric characters or a phone number might only include digits 0-9. However, this solution is often infeasible in web applications because many characters that have special meaning to the browser should still be considered valid input once they are encoded, such as a web design bulletin board that must accept HTML fragments from its users. 
+
+A more flexible, but less secure approach is known as blacklisting, which selectively rejects or escapes potentially dangerous characters before using the input. In order to form such a list, you first need to understand the set of characters that hold special meaning for web browsers. Although the HTML standard defines what characters have special meaning, many web browsers try to correct common mistakes in HTML and may treat other characters as special in certain contexts. The CERT(R) Coordination Center at the Software Engineering Institute at Carnegie Mellon University provides the following details about special characters in various contexts [1]:
+
+In the content of a block-level element (in the middle of a paragraph of text):
+
+- &quot;&lt;&quot; is special because it introduces a tag.
+
+- &quot;&amp;&quot; is special because it introduces a character entity.
+
+- &quot;&gt;&quot; is special because some browsers treat it as special, on the assumption that the author of the page intended to include an opening &quot;&lt;&quot;, but omitted it in error.
+
+The following principles apply to attribute values:
+
+- In attribute values enclosed with double quotes, the double quotes are special because they mark the end of the attribute value.
+
+- In attribute values enclosed with single quote, the single quotes are special because they mark the end of the attribute value.
+
+- In attribute values without any quotes, white-space characters, such as space and tab, are special.
+
+- &quot;&amp;&quot; is special when used with certain attributes, because it introduces a character entity. 
+
+In URLs, for example, a search engine might provide a link within the results page that the user can click to re-run the search. This can be implemented by encoding the search query inside the URL, which introduces additional special characters:
+
+- Space, tab, and new line are special because they mark the end of the URL.
+
+- &quot;&amp;&quot; is special because it either introduces a character entity or separates CGI parameters.
+
+- Non-ASCII characters (that is, everything above 128 in the ISO-8859-1 encoding) are not allowed in URLs, so they are considered to be special in this context.
+
+- The &quot;%&quot; symbol must be filtered from input anywhere parameters encoded with HTTP escape sequences are decoded by server-side code. For example, &quot;%&quot; must be filtered if input such as &quot;%68%65%6C%6C%6F&quot; becomes &quot;hello&quot; when it appears on the web page in question.
+
+
+Within the body of a &lt;SCRIPT&gt; &lt;/SCRIPT&gt;:
+
+- The semicolon, parenthesis, curly braces, and new line should be filtered in situations where text could be inserted directly into a pre-existing script tag. 
+
+Server-side scripts:
+
+- Server-side scripts that convert any exclamation characters (!) in input to double-quote characters (&quot;) on output might require additional filtering. 
+
+Other possibilities:
+
+- If an attacker submits a request in UTF-7, the special character '&lt;' appears as '+ADw-' and may bypass filtering. If the output is included in a page that does not explicitly specify an encoding format, then some browsers try to intelligently identify the encoding based on the content (in this case, UTF-7).
+
+Once you identify the correct points in an application to perform validation for XSS attacks and what special characters the validation should consider, the next challenge is to identify how your validation handles special characters. If special characters are not considered valid input to the application, then you can reject any input that contains special characters as invalid. A second option in this situation is to remove special characters with filtering. However, filtering has the side effect of changing any visual representation of the filtered content and may be unacceptable in circumstances where the integrity of the input must be preserved for display.
+
+If input containing special characters must be accepted and displayed accurately, validation must encode any special characters to remove their significance. A complete list of ISO 8859-1 encoded values for special characters is provided as part of the official HTML specification [2].
+
+Many application servers attempt to limit an application's exposure to cross-site scripting vulnerabilities by providing implementations for the functions responsible for setting certain specific HTTP response content that perform validation for the characters essential to a cross-site scripting attack. Do not rely on the server running your application to make it secure. When an application is developed there are no guarantees about what application servers it will run on during its lifetime. As standards and known exploits evolve, there are no guarantees that application servers will also stay in sync.</Value>
+                            </MetaInfo>
+                            <MetaInfo>
+<Name>Tips</Name>
+<Value>1. The HP Fortify Secure Coding Rulepacks treat the database as a source of untrusted data, which can lead to XSS vulnerabilities. If the database is a trusted resource in your environment, use custom filters to filter out dataflow issues that include the DATABASE taint flag or originate from database sources.
+
+2. Even though URL encoding untrusted data protects against many XSS attacks, some browsers (specifically, Internet Explorer 6 and 7 and possibly others) automatically decode content at certain locations within the Document Object Model (DOM) prior to passing it to the JavaScript interpreter. To reflect this danger, the rulepacks no longer treat URL encoding routines as sufficient to protect against Cross-Site Scripting. Data values that are URL encoded and subsequently output will cause Fortify to report Cross-Site Scripting: Poor Validation vulnerabilities.
+
+3. A number of modern web frameworks provide mechanisms for performing validation of user input. Struts and Struts 2 are among them. To highlight the unvalidated sources of input, the rulepacks dynamically re-prioritize the issues reported by HP Fortify Static Code Analyzer by lowering their probability of exploit and providing pointers to the supporting evidence whenever the framework validation mechanism is in use. We refer to this feature as Context-Sensitive Ranking. To further assist the HP Fortify user with the auditing process, the Fortify Security Research Group makes available the Data Validation project template that groups the issues into folders based on the validation mechanism applied to their source of input.
+
+4. Fortify RTA adds protection against this category.</Value>
+                            </MetaInfo>
+                            <AttributeValue>
+<Name>&lt;Unaudited&gt;</Name>
+<Count>26</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Not an Issue</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Reliability Issue</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Bad Practice</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Suspicious</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Exploitable</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                        </MajorAttributeSummary>
+                        <Issue ruleID="4D69E4E2-959C-4EF8-84F4-A6489B288ABF" iid="D02234C8599A75DF9C03147B4CE2B889">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doEndTag() in ContentMessage.java sends unvalidated data to a web browser on line 43, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContentMessage.java</FileName>
+<FilePath>taglib/language/ContentMessage.java</FilePath>
+<LineStart>43</LineStart>
+<Snippet>			}
+			else {
+				pageContext.getOut().print(getValueByField());
+			}
+		}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>Languages.java</FileName>
+<FilePath>system/Languages.java</FilePath>
+<LineStart>121</LineStart>
+<Snippet>			LanguageTranslation translation = (LanguageTranslation) iterator.next();
+			if (translation.getLangTranKey().equals(langTranKey)) {
+				return translation.getLangTranValue();
+			}
+		}</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="4D69E4E2-959C-4EF8-84F4-A6489B288ABF" iid="5762EDCB2B2921B7038C1DB9AFE7CA66">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doEndTag() in EditorText.java sends unvalidated data to a web browser on line 58, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>EditorText.java</FileName>
+<FilePath>taglib/language/EditorText.java</FilePath>
+<LineStart>58</LineStart>
+<Snippet>				value = (String) findValue(name);
+				result = buildText(name, value);
+				writer.println(result);
+			}
+		}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SiteDAO.java</FileName>
+<FilePath>dao/SiteDAO.java</FilePath>
+<LineStart>90</LineStart>
+<Snippet>	        Query query = em.createQuery(&quot;from Site where siteId = :siteId&quot;);
+	        query.setParameter(&quot;siteId&quot;, Constants.SITE_DEFAULT);
+	        Iterator&lt;?&gt; iterator = query.getResultList().iterator();
+	        while (iterator.hasNext()) {
+				Site site = (Site) iterator.next();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="4D69E4E2-959C-4EF8-84F4-A6489B288ABF" iid="5D5F74BA5F4F1DC2012E8769633AE7F3">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doEndTag() in ContentMessage.java sends unvalidated data to a web browser on line 40, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContentMessage.java</FileName>
+<FilePath>taglib/language/ContentMessage.java</FilePath>
+<LineStart>40</LineStart>
+<Snippet>		try {
+			if (key != null) {
+				pageContext.getOut().print(getValueByKey());
+			}
+			else {</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>Languages.java</FileName>
+<FilePath>system/Languages.java</FilePath>
+<LineStart>102</LineStart>
+<Snippet>	public static String getLangTranValue(Long langId, String langTranKey) {
+		Language language = (Language) table.get(langId);
+		Iterator&lt;?&gt; iterator = language.getTranslations().iterator();
+		while (iterator.hasNext()) {
+			LanguageTranslation translation = (LanguageTranslation) iterator.next();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="4D69E4E2-959C-4EF8-84F4-A6489B288ABF" iid="BCD45DDD416CDAC285A4B1E93ECE0FFE">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doEndTag() in ContentError.java sends unvalidated data to a web browser on line 44, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContentError.java</FileName>
+<FilePath>taglib/language/ContentError.java</FilePath>
+<LineStart>44</LineStart>
+<Snippet>	public int doEndTag() {
+		try {
+			pageContext.getOut().print(getError());
+		}
+		catch (Exception e) {</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>Languages.java</FileName>
+<FilePath>system/Languages.java</FilePath>
+<LineStart>102</LineStart>
+<Snippet>	public static String getLangTranValue(Long langId, String langTranKey) {
+		Language language = (Language) table.get(langId);
+		Iterator&lt;?&gt; iterator = language.getTranslations().iterator();
+		while (iterator.hasNext()) {
+			LanguageTranslation translation = (LanguageTranslation) iterator.next();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="5B9CE105-7C9E-402F-A6B5-3BB9EACDEE95" iid="3B0D4D5486B2053ECF77D7F44FEFB397">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method performAction() in SecureImageProvider.java sends unvalidated data to a web browser on line 59, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SecureImageProvider.java</FileName>
+<FilePath>service/SecureImageProvider.java</FilePath>
+<LineStart>59</LineStart>
+<Snippet>            response.setContentLength(data.length);
+            OutputStream outputStream = response.getOutputStream();
+            outputStream.write(data);
+        }
+        catch (Exception e) {</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>Utility.java</FileName>
+<FilePath>util/Utility.java</FilePath>
+<LineStart>1581</LineStart>
+<Snippet>		ItemImage image = ItemImageDAO.load(Long.valueOf(id));
+		if (image != null) {
+			data = image.getImageValue();
+			contentType = image.getContentType();
+		}</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="4D69E4E2-959C-4EF8-84F4-A6489B288ABF" iid="AB064A92E15D260E6F71D5EAAD01845B">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doEndTag() in EditorText.java sends unvalidated data to a web browser on line 58, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>EditorText.java</FileName>
+<FilePath>taglib/language/EditorText.java</FilePath>
+<LineStart>58</LineStart>
+<Snippet>				value = (String) findValue(name);
+				result = buildText(name, value);
+				writer.println(result);
+			}
+		}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>LoginAction.java</FileName>
+<FilePath>admin/login/LoginAction.java</FilePath>
+<LineStart>155</LineStart>
+<Snippet>	    	HttpSession httpSession = request.getSession();
+	    	AdminBean adminBean = new AdminBean();
+	    	adminBean.init(user.getUserId(), site.getSiteId());
+	    	httpSession.setAttribute(&quot;adminBean&quot;, adminBean);
+	    	Cookie cookie = new Cookie(&quot;user&quot;, user.getUserName());</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="4D69E4E2-959C-4EF8-84F4-A6489B288ABF" iid="BA3A9B2C13B05B3F5708A530EB6A2CA7">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doEndTag() in EditorText.java sends unvalidated data to a web browser on line 58, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>EditorText.java</FileName>
+<FilePath>taglib/language/EditorText.java</FilePath>
+<LineStart>58</LineStart>
+<Snippet>				value = (String) findValue(name);
+				result = buildText(name, value);
+				writer.println(result);
+			}
+		}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SiteDAO.java</FileName>
+<FilePath>dao/SiteDAO.java</FilePath>
+<LineStart>97</LineStart>
+<Snippet>		}
+		else {
+			Iterator&lt;?&gt; iterator = user.getSites().iterator();
+			while (iterator.hasNext()) {
+				Site site = (Site) iterator.next();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="4D69E4E2-959C-4EF8-84F4-A6489B288ABF" iid="AAE57C8585162091C507754FD6D24889">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doEndTag() in EditorText.java sends unvalidated data to a web browser on line 58, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>EditorText.java</FileName>
+<FilePath>taglib/language/EditorText.java</FilePath>
+<LineStart>58</LineStart>
+<Snippet>				value = (String) findValue(name);
+				result = buildText(name, value);
+				writer.println(result);
+			}
+		}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>LoginAction.java</FileName>
+<FilePath>admin/login/LoginAction.java</FilePath>
+<LineStart>111</LineStart>
+<Snippet>	        query = em.createQuery(&quot;from User user where userId = :userId&quot;);
+			query.setParameter(&quot;userId&quot;, form.getUserId());
+			List&lt;?&gt; list = query.getResultList();
+			if (list.size() == 0) {
+				errors.add(&quot;error&quot;, new ActionMessage(&quot;error.login.invalid&quot;));</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="F200F116-96DA-4F5B-A9AA-74EDBD984E84" iid="87248735410DAC899D5A1C61B32C9019">
+                            <Category>Cross-Site Scripting: Reflected</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method streamWebService() in AdminLookupDispatchAction.java sends unvalidated data to a web browser on line 431, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>AdminLookupDispatchAction.java</FileName>
+<FilePath>admin/AdminLookupDispatchAction.java</FilePath>
+<LineStart>431</LineStart>
+<Snippet>        response.setContentLength(data.getBytes(Constants.SYSTEM_ENCODING).length);
+        OutputStream outputStream = response.getOutputStream();
+        outputStream.write(data.getBytes(Constants.SYSTEM_ENCODING));
+        outputStream.flush();
+    }</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>AdminLookupDispatchAction.java</FileName>
+<FilePath>admin/AdminLookupDispatchAction.java</FilePath>
+<LineStart>135</LineStart>
+<Snippet>            if (form != null) {
+	            if (form.isStream) {
+	            	streamWebService(response, form.getStreamData());
+	            }
+	            else {</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="4D69E4E2-959C-4EF8-84F4-A6489B288ABF" iid="EF1054E36AFB45D1BD8254B85A006C59">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doEndTag() in ContentMessage.java sends unvalidated data to a web browser on line 43, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContentMessage.java</FileName>
+<FilePath>taglib/language/ContentMessage.java</FilePath>
+<LineStart>43</LineStart>
+<Snippet>			}
+			else {
+				pageContext.getOut().print(getValueByField());
+			}
+		}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>Languages.java</FileName>
+<FilePath>system/Languages.java</FilePath>
+<LineStart>117</LineStart>
+<Snippet>		Iterator&lt;?&gt; iterator = language.getTranslations().iterator();
+		
+		iterator = language.getTranslations().iterator();
+		while (iterator.hasNext()) {
+			LanguageTranslation translation = (LanguageTranslation) iterator.next();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="4D69E4E2-959C-4EF8-84F4-A6489B288ABF" iid="5762EDCB2B2921B7038C1DB9AFE7CA65">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doEndTag() in EditorText.java sends unvalidated data to a web browser on line 50, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>EditorText.java</FileName>
+<FilePath>taglib/language/EditorText.java</FilePath>
+<LineStart>50</LineStart>
+<Snippet>			if (!hasLanguageOverride()) {
+				result = buildText(property, value);
+				writer.println(result);
+			}
+			else {</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SiteDAO.java</FileName>
+<FilePath>dao/SiteDAO.java</FilePath>
+<LineStart>90</LineStart>
+<Snippet>	        Query query = em.createQuery(&quot;from Site where siteId = :siteId&quot;);
+	        query.setParameter(&quot;siteId&quot;, Constants.SITE_DEFAULT);
+	        Iterator&lt;?&gt; iterator = query.getResultList().iterator();
+	        while (iterator.hasNext()) {
+				Site site = (Site) iterator.next();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="4D69E4E2-959C-4EF8-84F4-A6489B288ABF" iid="AAE57C8585162091C507754FD6D24888">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doEndTag() in EditorText.java sends unvalidated data to a web browser on line 50, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>EditorText.java</FileName>
+<FilePath>taglib/language/EditorText.java</FilePath>
+<LineStart>50</LineStart>
+<Snippet>			if (!hasLanguageOverride()) {
+				result = buildText(property, value);
+				writer.println(result);
+			}
+			else {</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>LoginAction.java</FileName>
+<FilePath>admin/login/LoginAction.java</FilePath>
+<LineStart>111</LineStart>
+<Snippet>	        query = em.createQuery(&quot;from User user where userId = :userId&quot;);
+			query.setParameter(&quot;userId&quot;, form.getUserId());
+			List&lt;?&gt; list = query.getResultList();
+			if (list.size() == 0) {
+				errors.add(&quot;error&quot;, new ActionMessage(&quot;error.login.invalid&quot;));</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="5B9CE105-7C9E-402F-A6B5-3BB9EACDEE95" iid="B80EAD09C3DB127E9498BB7B990D1245">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method process() in ImageProvider.java sends unvalidated data to a web browser on line 60, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ImageProvider.java</FileName>
+<FilePath>service/ImageProvider.java</FilePath>
+<LineStart>60</LineStart>
+<Snippet>            response.setContentLength(data.length);
+            OutputStream outputStream = response.getOutputStream();
+            outputStream.write(data);
+        }
+        catch (Exception e) {</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>Utility.java</FileName>
+<FilePath>util/Utility.java</FilePath>
+<LineStart>1602</LineStart>
+<Snippet>		byte data[] = null;
+		if (siteDomainLanguage != null) {
+			data = siteDomainLanguage.getSiteLogoValue();
+		}
+    	if (data == null) {</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="5B9CE105-7C9E-402F-A6B5-3BB9EACDEE95" iid="62E9AA08375F102DFFE922CA9AC37818">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method generate() in ExportAction.java sends unvalidated data to a web browser on line 158, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ExportAction.java</FileName>
+<FilePath>admin/ie/ExportAction.java</FilePath>
+<LineStart>158</LineStart>
+<Snippet>							result += Utility.getStackTrace(e);
+							error = true;
+							outputStream.write(result.getBytes(Constants.SYSTEM_ENCODING));
+							break;
+						}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ExportAction.java</FileName>
+<FilePath>admin/ie/ExportAction.java</FilePath>
+<LineStart>155</LineStart>
+<Snippet>						}
+						catch (Exception e) {
+							result = &quot;Unable to export item with sku code &quot; + item.getItemSkuCd() + System.getProperty(&quot;line.separator&quot;);
+							result += Utility.getStackTrace(e);
+							error = true;</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="4D69E4E2-959C-4EF8-84F4-A6489B288ABF" iid="BA3A9B2C13B05B3F5708A530EB6A2CA6">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doEndTag() in EditorText.java sends unvalidated data to a web browser on line 50, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>EditorText.java</FileName>
+<FilePath>taglib/language/EditorText.java</FilePath>
+<LineStart>50</LineStart>
+<Snippet>			if (!hasLanguageOverride()) {
+				result = buildText(property, value);
+				writer.println(result);
+			}
+			else {</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SiteDAO.java</FileName>
+<FilePath>dao/SiteDAO.java</FilePath>
+<LineStart>97</LineStart>
+<Snippet>		}
+		else {
+			Iterator&lt;?&gt; iterator = user.getSites().iterator();
+			while (iterator.hasNext()) {
+				Site site = (Site) iterator.next();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="5B9CE105-7C9E-402F-A6B5-3BB9EACDEE95" iid="383DD97DF82DD0B080ABAC5BEC3EB3ED">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method generate() in ExportAction.java sends unvalidated data to a web browser on line 158, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ExportAction.java</FileName>
+<FilePath>admin/ie/ExportAction.java</FilePath>
+<LineStart>158</LineStart>
+<Snippet>							result += Utility.getStackTrace(e);
+							error = true;
+							outputStream.write(result.getBytes(Constants.SYSTEM_ENCODING));
+							break;
+						}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ExportAction.java</FileName>
+<FilePath>admin/ie/ExportAction.java</FilePath>
+<LineStart>138</LineStart>
+<Snippet>			query = em.createQuery(sql);
+			query.setParameter(&quot;siteId&quot;, site.getSiteId());
+			Iterator&lt;?&gt; iterator = query.getResultList().iterator();
+			boolean error = false;
+			while (iterator.hasNext()) {</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="5B9CE105-7C9E-402F-A6B5-3BB9EACDEE95" iid="9A48080609863FF7D81E1F7A1168639C">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method process() in ImageProvider.java sends unvalidated data to a web browser on line 60, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ImageProvider.java</FileName>
+<FilePath>service/ImageProvider.java</FilePath>
+<LineStart>60</LineStart>
+<Snippet>            response.setContentLength(data.length);
+            OutputStream outputStream = response.getOutputStream();
+            outputStream.write(data);
+        }
+        catch (Exception e) {</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>Utility.java</FileName>
+<FilePath>util/Utility.java</FilePath>
+<LineStart>1561</LineStart>
+<Snippet>		ContentImage image = ContentImageDAO.load(Long.valueOf(id));
+		if (image != null) {
+			data = image.getImageValue();
+			contentType = image.getContentType();
+		}</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="4D69E4E2-959C-4EF8-84F4-A6489B288ABF" iid="AB064A92E15D260E6F71D5EAAD01845A">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doEndTag() in EditorText.java sends unvalidated data to a web browser on line 50, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>EditorText.java</FileName>
+<FilePath>taglib/language/EditorText.java</FilePath>
+<LineStart>50</LineStart>
+<Snippet>			if (!hasLanguageOverride()) {
+				result = buildText(property, value);
+				writer.println(result);
+			}
+			else {</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>LoginAction.java</FileName>
+<FilePath>admin/login/LoginAction.java</FilePath>
+<LineStart>155</LineStart>
+<Snippet>	    	HttpSession httpSession = request.getSession();
+	    	AdminBean adminBean = new AdminBean();
+	    	adminBean.init(user.getUserId(), site.getSiteId());
+	    	httpSession.setAttribute(&quot;adminBean&quot;, adminBean);
+	    	Cookie cookie = new Cookie(&quot;user&quot;, user.getUserName());</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="5B9CE105-7C9E-402F-A6B5-3BB9EACDEE95" iid="94E44C9A0704C7B7DB5D2655755C8C10">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method process() in ImageProvider.java sends unvalidated data to a web browser on line 60, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ImageProvider.java</FileName>
+<FilePath>service/ImageProvider.java</FilePath>
+<LineStart>60</LineStart>
+<Snippet>            response.setContentLength(data.length);
+            OutputStream outputStream = response.getOutputStream();
+            outputStream.write(data);
+        }
+        catch (Exception e) {</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>Utility.java</FileName>
+<FilePath>util/Utility.java</FilePath>
+<LineStart>1581</LineStart>
+<Snippet>		ItemImage image = ItemImageDAO.load(Long.valueOf(id));
+		if (image != null) {
+			data = image.getImageValue();
+			contentType = image.getContentType();
+		}</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="4D69E4E2-959C-4EF8-84F4-A6489B288ABF" iid="E6F9E4F31BB464B511CED61B1B66ECF5">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doEndTag() in ContentMessage.java sends unvalidated data to a web browser on line 43, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContentMessage.java</FileName>
+<FilePath>taglib/language/ContentMessage.java</FilePath>
+<LineStart>43</LineStart>
+<Snippet>			}
+			else {
+				pageContext.getOut().print(getValueByField());
+			}
+		}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>Languages.java</FileName>
+<FilePath>system/Languages.java</FilePath>
+<LineStart>54</LineStart>
+<Snippet>		Vector&lt;Language&gt; languageVector = new Vector&lt;Language&gt;();
+		Query query = em.createQuery(&quot;from Language&quot;);
+		for (Iterator&lt;?&gt; iterator = query.getResultList().iterator(); iterator.hasNext();) {
+			Language language = (Language) iterator.next();
+			language.getTranslations().size();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="4D69E4E2-959C-4EF8-84F4-A6489B288ABF" iid="871E1F7B88681F1F834C3C9F2260B574">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doEndTag() in ContentMessage.java sends unvalidated data to a web browser on line 40, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContentMessage.java</FileName>
+<FilePath>taglib/language/ContentMessage.java</FilePath>
+<LineStart>40</LineStart>
+<Snippet>		try {
+			if (key != null) {
+				pageContext.getOut().print(getValueByKey());
+			}
+			else {</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>Languages.java</FileName>
+<FilePath>system/Languages.java</FilePath>
+<LineStart>54</LineStart>
+<Snippet>		Vector&lt;Language&gt; languageVector = new Vector&lt;Language&gt;();
+		Query query = em.createQuery(&quot;from Language&quot;);
+		for (Iterator&lt;?&gt; iterator = query.getResultList().iterator(); iterator.hasNext();) {
+			Language language = (Language) iterator.next();
+			language.getTranslations().size();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="4D69E4E2-959C-4EF8-84F4-A6489B288ABF" iid="79468F631C77E2CD99ECD5465313E2A8">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doEndTag() in ContentError.java sends unvalidated data to a web browser on line 44, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContentError.java</FileName>
+<FilePath>taglib/language/ContentError.java</FilePath>
+<LineStart>44</LineStart>
+<Snippet>	public int doEndTag() {
+		try {
+			pageContext.getOut().print(getError());
+		}
+		catch (Exception e) {</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>Languages.java</FileName>
+<FilePath>system/Languages.java</FilePath>
+<LineStart>106</LineStart>
+<Snippet>			LanguageTranslation translation = (LanguageTranslation) iterator.next();
+			if (translation.getLangTranKey().equals(langTranKey)) {
+				return translation.getLangTranValue();
+			}
+		}</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="4D69E4E2-959C-4EF8-84F4-A6489B288ABF" iid="B1877315FAEA354355ABCA49B1108FED">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doEndTag() in ContentMessage.java sends unvalidated data to a web browser on line 40, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContentMessage.java</FileName>
+<FilePath>taglib/language/ContentMessage.java</FilePath>
+<LineStart>40</LineStart>
+<Snippet>		try {
+			if (key != null) {
+				pageContext.getOut().print(getValueByKey());
+			}
+			else {</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>Languages.java</FileName>
+<FilePath>system/Languages.java</FilePath>
+<LineStart>106</LineStart>
+<Snippet>			LanguageTranslation translation = (LanguageTranslation) iterator.next();
+			if (translation.getLangTranKey().equals(langTranKey)) {
+				return translation.getLangTranValue();
+			}
+		}</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="5B9CE105-7C9E-402F-A6B5-3BB9EACDEE95" iid="6C48E30889677979EF2EACBDDDA88BD5">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method performAction() in SecureImageProvider.java sends unvalidated data to a web browser on line 59, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SecureImageProvider.java</FileName>
+<FilePath>service/SecureImageProvider.java</FilePath>
+<LineStart>59</LineStart>
+<Snippet>            response.setContentLength(data.length);
+            OutputStream outputStream = response.getOutputStream();
+            outputStream.write(data);
+        }
+        catch (Exception e) {</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>Utility.java</FileName>
+<FilePath>util/Utility.java</FilePath>
+<LineStart>1561</LineStart>
+<Snippet>		ContentImage image = ContentImageDAO.load(Long.valueOf(id));
+		if (image != null) {
+			data = image.getImageValue();
+			contentType = image.getContentType();
+		}</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="4D69E4E2-959C-4EF8-84F4-A6489B288ABF" iid="976826353980B6561C4C767DFE187D27">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doEndTag() in ContentError.java sends unvalidated data to a web browser on line 44, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContentError.java</FileName>
+<FilePath>taglib/language/ContentError.java</FilePath>
+<LineStart>44</LineStart>
+<Snippet>	public int doEndTag() {
+		try {
+			pageContext.getOut().print(getError());
+		}
+		catch (Exception e) {</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>Languages.java</FileName>
+<FilePath>system/Languages.java</FilePath>
+<LineStart>54</LineStart>
+<Snippet>		Vector&lt;Language&gt; languageVector = new Vector&lt;Language&gt;();
+		Query query = em.createQuery(&quot;from Language&quot;);
+		for (Iterator&lt;?&gt; iterator = query.getResultList().iterator(); iterator.hasNext();) {
+			Language language = (Language) iterator.next();
+			language.getTranslations().size();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="5B9CE105-7C9E-402F-A6B5-3BB9EACDEE95" iid="03A29290CE7E1F002D62B341713053D8">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method performAction() in SecureImageProvider.java sends unvalidated data to a web browser on line 59, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SecureImageProvider.java</FileName>
+<FilePath>service/SecureImageProvider.java</FilePath>
+<LineStart>59</LineStart>
+<Snippet>            response.setContentLength(data.length);
+            OutputStream outputStream = response.getOutputStream();
+            outputStream.write(data);
+        }
+        catch (Exception e) {</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>Utility.java</FileName>
+<FilePath>util/Utility.java</FilePath>
+<LineStart>1602</LineStart>
+<Snippet>		byte data[] = null;
+		if (siteDomainLanguage != null) {
+			data = siteDomainLanguage.getSiteLogoValue();
+		}
+    	if (data == null) {</Snippet>
+                            </Source>
+                        </Issue>
+                    </GroupingSection>
+                </Chart>
+            </IssueListing>
+        </SubSection>
+    </ReportSection>
+</ReportDefinition>
