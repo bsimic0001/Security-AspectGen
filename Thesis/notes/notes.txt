@@ -1,0 +1,10 @@
+1. Notes on creating aspect for line number
+
+First make a pointcut that works like java.sql.executeQuery(..) && within ClassNameFromXML.
+
+Then inside of the advice, use thisJoinPoint.getSourceLocation() to get the line number.
+Then compare this line number to the line number from XML and only continue if they are the same. 
+
+2. Generating the aspects. 
+
+Create XML for generating aspects. 
