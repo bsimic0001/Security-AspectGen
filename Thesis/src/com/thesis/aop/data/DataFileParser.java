@@ -9,11 +9,11 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-public class XMLParser {
+public class DataFileParser {
 	private String fileName;
 	private ArrayList<Issue> issues = new ArrayList<Issue>();
 	
-	public XMLParser(){}
+	public DataFileParser(){}
 	
 	public void ParseFile(String fileName) {
 		this.fileName = fileName;

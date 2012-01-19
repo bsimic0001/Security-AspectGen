@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<functions type="xml">
+	<function name="writeFunction">
+		<methodName>write</methodName>
+		<interceptParam>1</interceptParam>
+		<interceptParamType>String</interceptParamType>
+	</function>
+
+	<function name="writeByteArrayFunction">
+		<methodName>write</methodName>
+		<interceptParam>1</interceptParam>
+		<interceptParamType>byte[]</interceptParamType>
+	</function>
+
+	<function name="printFunction">
+		<methodName>print</methodName>
+		<interceptParam>1</interceptParam>
+		<interceptParamType>String</interceptParamType>
+	</function>
+
+	<function name="printlnFunction">
+		<methodName>println</methodName>
+		<interceptParam>1</interceptParam>
+		<interceptParamType>String</interceptParamType>
+	</function>
+
+	<function name="sendErrorFunction">
+		<methodName>sendError</methodName>
+		<interceptParam>2</interceptParam>
+		<interceptParamType>String</interceptParamType>
+	</function>
+
+	<function name="getParameterFunction">
+		<methodName>getParameter</methodName>
+		<interceptParam>1</interceptParam>
+		<interceptParamType>String</interceptParamType>
+	</function>
+
+	<function name="setAttributeFunction">
+		<methodName>setAttribute</methodName>
+		<interceptParam>2</interceptParam>
+		<interceptParamType>String</interceptParamType>
+	</function>
+</functions>
