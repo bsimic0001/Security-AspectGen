@@ -1,0 +1,2667 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ReportDefinition type="xml">
+    <TemplateName>OWASP Top Ten 2010</TemplateName>
+    <TemplatePath></TemplatePath>
+    <LogoPath>/fortify.jpg</LogoPath>
+    <Footnote>Copyright 2010 Fortify Software Inc.</Footnote>
+    <UserName>simicb</UserName>
+    <ReportSection optionalSubsections="false" enabled="true">
+        <Title>Report Overview</Title>
+        <SubSection enabled="true">
+            <Title>Report Summary</Title>
+            <Description>This provides a high level summary of the findings that the analysis produced. Also includes basic information on the scope of the scan.</Description>
+            <Text>On Jan 21, 2012, a source code review was performed over the jada_java code base. 334 files, 19,485 LOC (Executable) were scanned. A total of 87 issues were uncovered during the analysis. This report provides a comprehensive description of all the types of OWASP Top Ten 2010 issues found in this project. Specific examples and source code are provided for each issue type.</Text>
+        </SubSection>
+        <SubSection enabled="true">
+            <Title>Issue Summary</Title>
+            <Description>A table summarizing the number of issues found and the breakdown of issues in each OWASP Top Ten 2010 category</Description>
+            <IssueListing limit="-1" listing="false">
+                <Refinement></Refinement>
+                <Chart chartType="table">
+                    <Axis>OWASP Top Ten 2010</Axis>
+                    <MajorAttribute>Analysis</MajorAttribute>
+                    <GroupingSection count="76">
+                        <groupTitle>A1 Injection</groupTitle>
+                    </GroupingSection>
+                    <GroupingSection count="11">
+                        <groupTitle>A2 Cross-Site Scripting (XSS)</groupTitle>
+                    </GroupingSection>
+                </Chart>
+            </IssueListing>
+        </SubSection>
+    </ReportSection>
+    <ReportSection optionalSubsections="true" enabled="true">
+        <Title>Issue Breakdown by OWASP Top Ten 2010</Title>
+        <SubSection enabled="true">
+            <Title>Issue Breakdown by OWASP Top Ten 2010</Title>
+            <IssueListing limit="-1" listing="false">
+                <Refinement></Refinement>
+                <Chart chartType="pie">
+                    <Axis>OWASP Top Ten 2010</Axis>
+                    <MajorAttribute>Analysis</MajorAttribute>
+                    <GroupingSection count="76">
+                        <groupTitle>A1 Injection</groupTitle>
+                    </GroupingSection>
+                    <GroupingSection count="11">
+                        <groupTitle>A2 Cross-Site Scripting (XSS)</groupTitle>
+                    </GroupingSection>
+                </Chart>
+            </IssueListing>
+        </SubSection>
+    </ReportSection>
+    <ReportSection optionalSubsections="true" enabled="true">
+        <Title>Results Outline</Title>
+        <SubSection enabled="true">
+            <Title>Vulnerabilties By OWASP Top Ten 2010</Title>
+            <Description>Results by OWASP Top Ten 2010</Description>
+            <IssueListing limit="-1" listing="true">
+                <Refinement>[OWASP Top Ten 2010]:!Not Covered</Refinement>
+                <Chart chartType="list">
+                    <Axis>OWASP Top Ten 2010</Axis>
+                    <MajorAttribute>Analysis</MajorAttribute>
+                    <GroupingSection count="76">
+                        <groupTitle>A1 Injection</groupTitle>
+                        <MajorAttributeSummary>
+                            <MetaInfo>
+<Name>Abstract</Name>
+<Value>Using Hibernate to execute a dynamic SQL statement built with user input can allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands. </Value>
+                            </MetaInfo>
+                            <MetaInfo>
+<Name>Explanation</Name>
+<Value>SQL Injection errors occur when:
+
+1. Data enters a program from an untrusted source.
+
+
+
+2. The data is used to dynamically construct a SQL query. 
+
+
+
+Example 1: The following code dynamically constructs and executes a SQL query that searches for items matching a specified name. The query restricts the items displayed to those where owner matches the user name of the currently-authenticated user. 
+
+
+...
+	String userName = ctx.getAuthenticatedUserName();
+	String itemName = request.getParameter(&quot;itemName&quot;);
+	String query = &quot;SELECT * FROM items WHERE owner = '&quot; 
+				+ userName + &quot;' AND itemname = '&quot;  
+				+ itemName + &quot;'&quot;;
+	List items = sess.createSQLQuery(query).list();
+	...
+
+
+The query that this code intends to execute follows:
+
+
+	SELECT * FROM items
+	WHERE owner = &lt;userName&gt;
+	AND itemname = &lt;itemName&gt;;
+
+
+However, because the query is constructed dynamically by concatenating a constant base query string and a user input string, the query only behaves correctly if itemName does not contain a single-quote character. If an attacker with the user name wiley enters the string &quot;name' OR 'a'='a&quot; for itemName, then the query becomes the following:
+
+
+	SELECT * FROM items
+	WHERE owner = 'wiley'
+	AND itemname = 'name' OR 'a'='a';
+
+
+The addition of the OR 'a'='a' condition causes the where clause to always evaluate to true, so the query becomes logically equivalent to the much simpler query:
+
+
+	SELECT * FROM items;
+
+
+This simplification of the query allows the attacker to bypass the requirement that the query only return items owned by the authenticated user; the query now returns all entries stored in the items table, regardless of their specified owner.
+
+Example 2: This example examines the effects of a different malicious value passed to the query constructed and executed in Example 1. If an attacker with the user name wiley enters the string &quot;name'; DELETE FROM items; --&quot; for itemName, then the query becomes the following two queries:
+
+
+	SELECT * FROM items 
+	WHERE owner = 'wiley'
+	AND itemname = 'name';
+
+	DELETE FROM items;
+
+	--'
+
+
+Many database servers, including Microsoft(R) SQL Server 2000, allow multiple SQL statements separated by semicolons to be executed at once. While this attack string results in an error on Oracle and other database servers that do not allow the batch-execution of statements separated by semicolons, on databases that do allow batch execution, this type of attack allows the attacker to execute arbitrary commands against the database. 
+
+Notice the trailing pair of hyphens (--), which specifies to most database servers that the remainder of the statement is to be treated as a comment and not executed [4]. In this case the comment character serves to remove the trailing single-quote left over from the modified query. On a database where comments are not allowed to be used in this way, the general attack could still be made effective using a trick similar to the one shown in Example 1. If an attacker enters the string &quot;name'); DELETE FROM items; SELECT * FROM items WHERE 'a'='a&quot;, the following three valid statements will be created: 
+
+
+	SELECT * FROM items 
+	WHERE owner = 'wiley'
+	AND itemname = 'name';
+
+	DELETE FROM items;
+
+	SELECT * FROM items WHERE 'a'='a';
+
+
+One traditional approach to preventing SQL injection attacks is to handle them as an input validation problem and either accept only characters from a whitelist of safe values or identify and escape a blacklist of potentially malicious values. Whitelisting can be an effective means of enforcing strict input validation rules, but parameterized SQL statements require less maintenance and can offer more guarantees with respect to security. As is almost always the case, blacklisting is riddled with loopholes that make it ineffective at preventing SQL injection attacks. For example, attackers can: 
+
+- Target fields that are not quoted
+
+- Find ways to bypass the need for certain escaped meta-characters
+
+- Use stored procedures to hide the injected meta-characters
+
+Manually escaping characters in input to SQL queries can help, but it will not make your application secure from SQL injection attacks. 
+
+Another solution commonly proposed for dealing with SQL injection attacks is to use stored procedures. Although stored procedures prevent some types of SQL injection attacks, they fail to protect against many others. Stored procedures typically help prevent SQL injection attacks by limiting the types of statements that can be passed to their parameters. However, there are many ways around the limitations and many interesting statements that can still be passed to stored procedures. Again, stored procedures can prevent some types of exploits, but they will not make your application secure against SQL injection attacks. 
+</Value>
+                            </MetaInfo>
+                            <MetaInfo>
+<Name>Recommendations</Name>
+<Value>The root cause of a SQL injection vulnerability is the ability of an attacker to change context in the SQL query, causing a value that the programmer intended to be interpreted as data to be interpreted as a command instead. When a SQL query is constructed, the programmer knows what should be interpreted as part of the command and what should be interpreted as data. Parameterized SQL statements can enforce this behavior by disallowing data-directed context changes and preventing nearly all SQL injection attacks. Parameterized SQL statements are constructed using strings of regular SQL, but where user-supplied data needs to be included, they include bind parameters, which are placeholders for data that is subsequently inserted. In other words, bind parameters allow the programmer to explicitly specify to the database what should be treated as a command and what should be treated as data. When the program is ready to execute a statement, it specifies to the database the runtime values to use for each of the bind parameters without the risk that the data will be interpreted as a modification to the command.
+
+The previous example can be rewritten to use parameterized SQL statements (instead of concatenating user supplied strings) as follows:
+
+
+...
+String userName = ctx.getAuthenticatedUserName();
+String itemName = request.getParameter(&quot;itemName&quot;);
+String query =
+        &quot;SELECT * FROM items WHERE itemname=? AND owner=?&quot;; 
+Query stmt = sess.createQuery(query);
+stmt.setString(0, itemName);
+stmt.setString(1, userName);
+List items = stmt.list();
+...
+
+
+More complicated scenarios, often found in report generation code, require that user input affect the structure of the SQL statement, for instance by adding a dynamic constraint in the WHERE clause. Do not use this requirement to justify concatenating user input to create a query string. Prevent SQL injection attacks where user input must affect command structure with a level of indirection: create a set of legitimate strings that correspond to different elements you might include in a SQL statement. When constructing a statement, use input from the user to select from this set of application-controlled values.
+
+Use bind parameters whenever input data must be directly included in a statement.
+</Value>
+                            </MetaInfo>
+                            <MetaInfo>
+<Name>Tips</Name>
+<Value>1. A common mistake is to use parameterized SQL statements that are constructed by concatenating user-controlled strings. Of course, this defeats the purpose of using parameterized SQL statements. If you are not certain that the strings used to form statements are constants controlled by the application, do not assume that they are safe because they are not being executed directly as SQL strings. Thoroughly investigate all uses of user-controlled strings in SQL statements and verify that none can be used to modify the meaning of the query. 
+
+2. A number of modern web frameworks provide mechanisms for performing validation of user input. Struts and Struts 2 are among them. To highlight the unvalidated sources of input, the HP Fortify Secure Coding Rulepacks dynamically re-prioritize the issues reported by HP Fortify Static Code Analyzer by lowering their probability of exploit and providing pointers to the supporting evidence whenever the framework validation mechanism is in use. We refer to this feature as Context-Sensitive Ranking. To further assist the HP Fortify user with the auditing process, the Fortify Security Research Group makes available the Data Validation project template that groups the issues into folders based on the validation mechanism applied to their source of input.
+
+3. Fortify RTA adds protection against this category.</Value>
+                            </MetaInfo>
+                            <AttributeValue>
+<Name>&lt;Unaudited&gt;</Name>
+<Count>76</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Not an Issue</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Reliability Issue</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Bad Practice</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Suspicious</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Exploitable</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                        </MajorAttributeSummary>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="A3DE8B27324D38B29F2A8B7040ED67ED">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 111 of CountryMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>CountryMaintAction.java</FileName>
+<FilePath>jada/admin/country/CountryMaintAction.java</FilePath>
+<LineStart>111</LineStart>
+<Snippet>		Country country = CountryDAO.load(getAdminBean(request).getSiteId(), Format.getLong(form.getCountryId()));
+		try {
+			session.delete(country);
+			session.getTransaction().commit();
+		}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>CountryDAO.java</FileName>
+<FilePath>jada/dao/CountryDAO.java</FilePath>
+<LineStart>33</LineStart>
+<Snippet>	public static Country load(String siteId, Long countryId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Country country = (Country) session.get(Country.class, countryId);
+		if (!country.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="F74292301B07DCD2AFB4DAD2D5C68DE3">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 126 of TaxMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>TaxMaintAction.java</FileName>
+<FilePath>jada/admin/tax/TaxMaintAction.java</FilePath>
+<LineStart>126</LineStart>
+<Snippet>		TaxMaintActionForm form = (TaxMaintActionForm) actionForm;
+		Tax tax = TaxDAO.load(getAdminBean(request).getSiteId(), Format.getLong(form.getTaxId()));
+		session.delete(tax);
+		ActionForward actionForward = actionMapping.findForward(&quot;removeSuccess&quot;);
+		return actionForward;</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>TaxDAO.java</FileName>
+<FilePath>jada/dao/TaxDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static Tax load(String siteId, Long taxId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Tax tax = (Tax) session.get(Tax.class, taxId);
+		if (!tax.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="5F341C68675E0C3E96B7090A491BE0E9">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 223 of ContentListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContentListingAction.java</FileName>
+<FilePath>jada/admin/content/ContentListingAction.java</FilePath>
+<LineStart>223</LineStart>
+<Snippet>					while (iterator.hasNext()) {
+						contentImage = (ContentImage) iterator.next();
+						session.delete(contentImage);
+					}
+					iterator = (Iterator) content.getMenus().iterator();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ContentDAO.java</FileName>
+<FilePath>jada/dao/ContentDAO.java</FilePath>
+<LineStart>33</LineStart>
+<Snippet>	public static Content load(String siteId, Long contentId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Content content = (Content) session.get(Content.class, contentId);
+		if (!content.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="763FEAA37DCF385EF176854C917D8538">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 265 of ItemMaintAction.java, save() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ItemMaintAction.java</FileName>
+<FilePath>jada/admin/item/ItemMaintAction.java</FilePath>
+<LineStart>265</LineStart>
+<Snippet>		else {
+			if (homePage != null) {
+				session.delete(homePage);
+			}
+		}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ItemMaintAction.java</FileName>
+<FilePath>jada/admin/item/ItemMaintAction.java</FilePath>
+<LineStart>890</LineStart>
+<Snippet>		Query query = session.createQuery(&quot;from HomePage homePage where siteId = :siteId&quot;);
+		query.setString(&quot;siteId&quot;, adminBean.getSite().getSiteId());
+		Iterator iterator = query.list().iterator();
+		while (iterator.hasNext()) {
+			HomePage homePage = (HomePage) iterator.next();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="CF5B19061825B6618152B5D8AE86260F">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 110 of ShippingMethodListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ShippingMethodListingAction.java</FileName>
+<FilePath>jada/admin/shipping/ShippingMethodListingAction.java</FilePath>
+<LineStart>110</LineStart>
+<Snippet>	            ShippingMethod shippingMethod = new ShippingMethod();
+	            shippingMethod = ShippingMethodDAO.load(getAdminBean(request).getSiteId(), Format.getLong(shippingMethods[i].getShippingMethodId()));
+	            session.delete(shippingMethod);
+        	}
+        }</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ShippingMethodDAO.java</FileName>
+<FilePath>jada/dao/ShippingMethodDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static ShippingMethod load(String siteId, Long shippingMethodId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		ShippingMethod shippingmethod = (ShippingMethod) session.get(ShippingMethod.class, shippingMethodId);
+		if (!shippingmethod.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="049305EA157E25CEFC4D1A616126F38D">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 122 of SyndicationMaintAction.java, update() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SyndicationMaintAction.java</FileName>
+<FilePath>jada/admin/syndication/SyndicationMaintAction.java</FilePath>
+<LineStart>122</LineStart>
+<Snippet>        		if (displayForm.getSynUrl().trim().length() == 0) {
+        			displayForm.setSynId(&quot;&quot;);
+        			session.delete(syndication);
+        		}
+        		else {</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SyndicationDAO.java</FileName>
+<FilePath>jada/dao/SyndicationDAO.java</FilePath>
+<LineStart>34</LineStart>
+<Snippet>	public static Syndication load(String siteId, Long syndicationId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Syndication syndication = (Syndication) session.get(Syndication.class, syndicationId);
+		if (!syndication.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="4B673A45-9AD5-4CBA-945B-11A3702CDF57" iid="67A8BB7086FFDA77EE83FB99AACED636">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 107 of Installer.java, the method setDatabaseCreated() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>Installer.java</FileName>
+<FilePath>jada/install/process/Installer.java</FilePath>
+<LineStart>107</LineStart>
+<Snippet>    		connection = DriverManager.getConnection(infoBean.getUrl(), infoBean.getUsername(), infoBean.getPassword());
+    		sql = &quot;insert into control values ('created', '&quot; + Format.getFullDatetime(new Date(System.currentTimeMillis())) + &quot;');&quot;;
+    		connection.createStatement().executeUpdate(sql);
+		}
+		finally {</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="2C39904CB2A4C0576D1B89815B7F1B9D">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 230 of ContentListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContentListingAction.java</FileName>
+<FilePath>jada/admin/content/ContentListingAction.java</FilePath>
+<LineStart>230</LineStart>
+<Snippet>						menu.setContent(null);
+					}
+		            session.delete(content);
+		        }
+		        session.getTransaction().commit();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ContentDAO.java</FileName>
+<FilePath>jada/dao/ContentDAO.java</FilePath>
+<LineStart>33</LineStart>
+<Snippet>	public static Content load(String siteId, Long contentId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Content content = (Content) session.get(Content.class, contentId);
+		if (!content.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="9CFDAD4B58FA375E4739FE7E2159D453">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 426 of MenuMaintAction.java, cascadeRemoveMenu() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>MenuMaintAction.java</FileName>
+<FilePath>jada/admin/menu/MenuMaintAction.java</FilePath>
+<LineStart>426</LineStart>
+<Snippet>    	}
+    	Menu menu = MenuDAO.load(siteId, menuId);
+    	session.delete(menu);
+    	return;
+    }</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>MenuDAO.java</FileName>
+<FilePath>jada/dao/MenuDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static Menu load(String siteId, Long menuId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Menu menu = (Menu) session.get(Menu.class, menuId);
+		if (!menu.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="01680F1AF4ACFB4082D834A78ACC481B">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 297 of PollMaintAction.java, removePollDetails() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>PollMaintAction.java</FileName>
+<FilePath>jada/admin/poll/PollMaintAction.java</FilePath>
+<LineStart>297</LineStart>
+<Snippet>        		PollDetail pollDetail = (PollDetail) iterator.next();
+        		if (pollDetail.getPollDetailId().equals(Format.getLong(pollDetailForm.getPollDetailId()))) {
+        			session.delete(pollDetail);
+        			removeDetails.add(pollDetail);
+        		}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>PollHeaderDAO.java</FileName>
+<FilePath>jada/dao/PollHeaderDAO.java</FilePath>
+<LineStart>34</LineStart>
+<Snippet>	public static PollHeader load(String siteId, Long pollHeaderId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		PollHeader pollheader = (PollHeader) session.get(PollHeader.class, pollHeaderId);
+		if (!pollheader.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="0AE9944A587DAC9B5E4165EEE111DC53">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 131 of CustomerListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>CustomerListingAction.java</FileName>
+<FilePath>jada/admin/customer/CustomerListingAction.java</FilePath>
+<LineStart>131</LineStart>
+<Snippet>		            Customer customer = new Customer();
+		            customer = CustomerDAO.load(getAdminBean(request).getSiteId(), Format.getLong(customers[i].getCustId()));
+		            session.delete(customer);
+		        }
+		        session.getTransaction().commit();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>CustomerDAO.java</FileName>
+<FilePath>jada/dao/CustomerDAO.java</FilePath>
+<LineStart>39</LineStart>
+<Snippet>	public static Customer load(String siteId, Long custId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Customer customer = (Customer) session.get(Customer.class, custId);
+		if (!customer.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="DE9130ADD167A0B33B2DFC2558BF5760">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 169 of SiteListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SiteListingAction.java</FileName>
+<FilePath>jada/admin/site/SiteListingAction.java</FilePath>
+<LineStart>169</LineStart>
+<Snippet>		    		SiteLoader siteLoader = new SiteLoader(siteIds[i], user.getUserId());
+		    		siteLoader.remove();
+		            session.delete(site);
+		        }
+		        session.getTransaction().commit();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SiteDAO.java</FileName>
+<FilePath>jada/dao/SiteDAO.java</FilePath>
+<LineStart>44</LineStart>
+<Snippet>    	}
+    	
+		Site site = (Site) session.get(Site.class, siteId);
+		return site;
+	}</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="8E42FB75EF54AF4E2AE62BA5C634D42D">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 242 of ContentMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContentMaintAction.java</FileName>
+<FilePath>jada/admin/content/ContentMaintAction.java</FilePath>
+<LineStart>242</LineStart>
+<Snippet>			ContentImage contentImage = content.getImage();
+			if (contentImage != null) {
+				session.delete(contentImage);
+			}
+			Iterator iterator = content.getImages().iterator();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ContentDAO.java</FileName>
+<FilePath>jada/dao/ContentDAO.java</FilePath>
+<LineStart>33</LineStart>
+<Snippet>	public static Content load(String siteId, Long contentId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Content content = (Content) session.get(Content.class, contentId);
+		if (!content.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="1FE5CF8A7B144762740E9EE315239208">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 94 of CustomerMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>CustomerMaintAction.java</FileName>
+<FilePath>jada/admin/customer/CustomerMaintAction.java</FilePath>
+<LineStart>94</LineStart>
+<Snippet>		CustomerMaintActionForm form = (CustomerMaintActionForm) actionForm;
+        Customer customer = CustomerDAO.load(getAdminBean(request).getSite().getSiteId(), Format.getLong(form.getCustId()));
+		session.delete(customer);
+		ActionForward actionForward = actionMapping.findForward(&quot;removeSuccess&quot;);
+		return actionForward;</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>CustomerDAO.java</FileName>
+<FilePath>jada/dao/CustomerDAO.java</FilePath>
+<LineStart>39</LineStart>
+<Snippet>	public static Customer load(String siteId, Long custId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Customer customer = (Customer) session.get(Customer.class, custId);
+		if (!customer.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="EE9AE2EAA88240F3058A742350643B82">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 147 of ContactUsListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContactUsListingAction.java</FileName>
+<FilePath>jada/admin/contactus/ContactUsListingAction.java</FilePath>
+<LineStart>147</LineStart>
+<Snippet>            ContactUs contactUs = new ContactUs();
+            contactUs = ContactUsDAO.load(getAdminBean(request).getSiteId(), Format.getLong(contactUsForms[i].getContactUsId()));
+            session.delete(contactUs);
+        }
+</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ContactUsDAO.java</FileName>
+<FilePath>jada/dao/ContactUsDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static ContactUs load(String siteId, Long contactUsId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		ContactUs contactUs = (ContactUs) session.get(ContactUs.class, contactUsId);
+		if (!contactUs.getSiteId().equals(siteId)) {
+			throw new SecurityException(&quot;&quot;);</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="E04D3E1F-2D8C-400A-BB55-7DA143F987E3" iid="B5230642A8737AEF60BBAC84E7A4AAF8">
+                            <Category>SQL Injection</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 240 of DatabaseLoadAction.java, the method loadData() invokes a SQL query built using unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>DatabaseLoadAction.java</FileName>
+<FilePath>jada/install/process/DatabaseLoadAction.java</FilePath>
+<LineStart>240</LineStart>
+<Snippet>	    			sql = sql.replaceAll(&quot;\t&quot;, &quot; &quot;);
+		    		System.out.println(&quot;[&quot; + sql + &quot;]&quot;);
+	    			connection.createStatement().executeUpdate(sql);
+	    			sql = &quot;&quot;;
+	    		}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>DatabaseLoadAction.java</FileName>
+<FilePath>jada/install/process/DatabaseLoadAction.java</FilePath>
+<LineStart>217</LineStart>
+<Snippet>    	try {
+	    	while (true) {
+	    		line = reader.readLine();
+	    		if (line == null) {
+	    			break;</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="D53BB5EA6736969E4FE8865874711FFD">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 1015 of Utility.java, saveSiteParam() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>Utility.java</FileName>
+<FilePath>jada/util/Utility.java</FilePath>
+<LineStart>1015</LineStart>
+<Snippet>    		SiteParam siteParam = (SiteParam) iterator.next();
+    		if (siteParam.getSiteParamName().equals(name)) {
+    			session.delete(siteParam);
+    		}
+    	}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>Utility.java</FileName>
+<FilePath>jada/util/Utility.java</FilePath>
+<LineStart>1010</LineStart>
+<Snippet>    public static void saveSiteParam(String userId, String siteId, String name, String value) throws Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+    	Site site = (Site) session.load(Site.class, siteId);
+    	Iterator iterator = site.getSiteParams().iterator();
+    	while (iterator.hasNext()) {</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="FC4F4B4D1FDF60255BCAF0AC0EFAF5B1">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 110 of ShippingTypeMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ShippingTypeMaintAction.java</FileName>
+<FilePath>jada/admin/shipping/ShippingTypeMaintAction.java</FilePath>
+<LineStart>110</LineStart>
+<Snippet>				session.delete(shippingMethodRegionType);
+			}
+			session.delete(shippingType);
+			session.getTransaction().commit();
+		}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ShippingTypeDAO.java</FileName>
+<FilePath>jada/dao/ShippingTypeDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static ShippingType load(String siteId, Long shippingTypeId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		ShippingType shippingtype = (ShippingType) session.get(ShippingType.class, shippingTypeId);
+		if (!shippingtype.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="4094C3AED771440C17C61DC6330A4AE4">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 750 of ItemMaintAction.java, removeImages() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ItemMaintAction.java</FileName>
+<FilePath>jada/admin/item/ItemMaintAction.java</FilePath>
+<LineStart>750</LineStart>
+<Snippet>				else {
+					ItemImage itemImage = ItemImageDAO.load(adminBean.getSiteId(), Format.getLong(imageIds[i]));
+					session.delete(itemImage);
+				}
+			}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ItemImageDAO.java</FileName>
+<FilePath>jada/dao/ItemImageDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static ItemImage load(String siteId, Long imageId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		ItemImage itemimage = (ItemImage) session.get(ItemImage.class, imageId);
+		if (!itemimage.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="ACC1EACF56FE913FF84D08E6804CE068">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 149 of ShippingTypeListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ShippingTypeListingAction.java</FileName>
+<FilePath>jada/admin/shipping/ShippingTypeListingAction.java</FilePath>
+<LineStart>149</LineStart>
+<Snippet>						session.delete(shippingMethodRegionType);
+					}
+		            session.delete(shippingType);
+		        }
+		        session.getTransaction().commit();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ShippingTypeDAO.java</FileName>
+<FilePath>jada/dao/ShippingTypeDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static ShippingType load(String siteId, Long shippingTypeId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		ShippingType shippingtype = (ShippingType) session.get(ShippingType.class, shippingTypeId);
+		if (!shippingtype.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="10D759B4-E339-42F4-9ADA-33D1337248E9" iid="96DE26231BD6E6887000FEACCB31E4B4">
+                            <Category>SQL Injection</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 609 of ContentApi.java, the method getSection() invokes a SQL query built using unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContentApi.java</FileName>
+<FilePath>jada/content/data/ContentApi.java</FilePath>
+<LineStart>609</LineStart>
+<Snippet>	    		break;
+    	}
+    	SQLQuery sqlQuery = session.createSQLQuery(sql);
+    	sqlQuery.addScalar(&quot;type&quot;, Hibernate.STRING);
+    	sqlQuery.addScalar(&quot;objectId&quot;, Hibernate.STRING);</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ContentBean.java</FileName>
+<FilePath>jada/content/ContentBean.java</FilePath>
+<LineStart>62</LineStart>
+<Snippet>	public Site getSite()throws Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+    	Site site = (Site) session.load(Site.class, siteId);
+		return site;
+	}</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="52647BD076236A5D4C156CB57D18D414">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 205 of CountryMaintAction.java, removeState() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>CountryMaintAction.java</FileName>
+<FilePath>jada/admin/country/CountryMaintAction.java</FilePath>
+<LineStart>205</LineStart>
+<Snippet>				State state = StateDAO.load(getAdminBean(request).getSiteId(), Format.getLong(stateForm.getStateId()));
+				country.getStates().remove(state);
+				session.delete(state);
+			}
+		}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>StateDAO.java</FileName>
+<FilePath>jada/dao/StateDAO.java</FilePath>
+<LineStart>33</LineStart>
+<Snippet>	public static State load(String siteId, Long stateId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		State state = (State) session.get(State.class, stateId);
+		if (!state.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="63C38B77A1E60D00DB9F2C294360E228">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 601 of ContentMaintAction.java, removeImages() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContentMaintAction.java</FileName>
+<FilePath>jada/admin/content/ContentMaintAction.java</FilePath>
+<LineStart>601</LineStart>
+<Snippet>				else {
+					ContentImage contentImage = ContentImageDAO.load(adminBean.getSiteId(), Format.getLong(imageIds[i]));
+					session.delete(contentImage);
+				}
+			}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ContentImageDAO.java</FileName>
+<FilePath>jada/dao/ContentImageDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static ContentImage load(String siteId, Long imageId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		ContentImage contentimage = (ContentImage) session.get(ContentImage.class, imageId);
+		if (!contentimage.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="8E42FB75EF54AF4E2AE62BA5C634D42E">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 247 of ContentMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContentMaintAction.java</FileName>
+<FilePath>jada/admin/content/ContentMaintAction.java</FilePath>
+<LineStart>247</LineStart>
+<Snippet>			while (iterator.hasNext()) {
+				contentImage = (ContentImage) iterator.next();
+				session.delete(contentImage);
+			}
+			iterator = (Iterator) content.getMenus().iterator();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ContentDAO.java</FileName>
+<FilePath>jada/dao/ContentDAO.java</FilePath>
+<LineStart>33</LineStart>
+<Snippet>	public static Content load(String siteId, Long contentId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Content content = (Content) session.get(Content.class, contentId);
+		if (!content.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="37C5F151E22AF83276D09D8A499D36B7">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 129 of UserMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>UserMaintAction.java</FileName>
+<FilePath>jada/admin/user/UserMaintAction.java</FilePath>
+<LineStart>129</LineStart>
+<Snippet>		User signinUser = getAdminBean(request).getUser();
+        User user = UserDAO.load(form.getUserId(), signinUser);
+		session.delete(user);
+		ActionForward actionForward = actionMapping.findForward(&quot;removeSuccess&quot;);
+		return actionForward;</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>UserDAO.java</FileName>
+<FilePath>jada/dao/UserDAO.java</FilePath>
+<LineStart>38</LineStart>
+<Snippet>    	}
+    	
+		User user = (User) session.get(User.class, userId);
+		if (!hasAccess(signinUser, user)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="E51B70E01359D7D79C32A37DCAA701EF">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 175 of SiteLoader.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SiteLoader.java</FileName>
+<FilePath>jada/admin/site/SiteLoader.java</FilePath>
+<LineStart>175</LineStart>
+<Snippet>        while (iterator.hasNext()) {
+        	Country country = (Country) iterator.next();
+        	session.delete(country);
+        }
+        </Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SiteLoader.java</FileName>
+<FilePath>jada/admin/site/SiteLoader.java</FilePath>
+<LineStart>172</LineStart>
+<Snippet>        query = session.createQuery(sql);
+        query.setString(&quot;siteId&quot;, siteId);
+        iterator = query.iterate();
+        while (iterator.hasNext()) {
+        	Country country = (Country) iterator.next();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="32AABEF51C928DEA29F734B6C6576CB2">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 123 of CountryListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>CountryListingAction.java</FileName>
+<FilePath>jada/admin/country/CountryListingAction.java</FilePath>
+<LineStart>123</LineStart>
+<Snippet>		            Country country = new Country();
+		            country = CountryDAO.load(getAdminBean(request).getSiteId(), Format.getLong(countries[i].getCountryId()));
+		            session.delete(country);
+		        }
+		        session.getTransaction().commit();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>CountryDAO.java</FileName>
+<FilePath>jada/dao/CountryDAO.java</FilePath>
+<LineStart>33</LineStart>
+<Snippet>	public static Country load(String siteId, Long countryId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Country country = (Country) session.get(Country.class, countryId);
+		if (!country.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="774A0DBE95E2E3B55247813681357BAB">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 108 of ShippingTypeMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ShippingTypeMaintAction.java</FileName>
+<FilePath>jada/admin/shipping/ShippingTypeMaintAction.java</FilePath>
+<LineStart>108</LineStart>
+<Snippet>				ShippingMethodRegionType shippingMethodRegionType = (ShippingMethodRegionType) iterator.next();
+				session.delete(shippingMethodRegionType.getShippingRate());
+				session.delete(shippingMethodRegionType);
+			}
+			session.delete(shippingType);</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ShippingTypeDAO.java</FileName>
+<FilePath>jada/dao/ShippingTypeDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static ShippingType load(String siteId, Long shippingTypeId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		ShippingType shippingtype = (ShippingType) session.get(ShippingType.class, shippingTypeId);
+		if (!shippingtype.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="DCEF5D7F46476D2DCC7DD1A9263F23D9">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 184 of SiteLoader.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SiteLoader.java</FileName>
+<FilePath>jada/admin/site/SiteLoader.java</FilePath>
+<LineStart>184</LineStart>
+<Snippet>        while (iterator.hasNext()) {
+        	ShippingRate shippingRate = (ShippingRate) iterator.next();
+        	session.delete(shippingRate);
+        }
+</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SiteLoader.java</FileName>
+<FilePath>jada/admin/site/SiteLoader.java</FilePath>
+<LineStart>181</LineStart>
+<Snippet>        query = session.createQuery(sql);
+        query.setString(&quot;siteId&quot;, siteId);
+        iterator = query.iterate();
+        while (iterator.hasNext()) {
+        	ShippingRate shippingRate = (ShippingRate) iterator.next();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="AB18F174D6FE0F27C2D7F1A703C977EA">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 243 of ItemListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ItemListingAction.java</FileName>
+<FilePath>jada/admin/item/ItemListingAction.java</FilePath>
+<LineStart>243</LineStart>
+<Snippet>					while (iterator.hasNext()) {
+						itemImage = (ItemImage) iterator.next();
+						session.delete(itemImage);
+					}
+					iterator = (Iterator) item.getMenus().iterator();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ItemDAO.java</FileName>
+<FilePath>jada/dao/ItemDAO.java</FilePath>
+<LineStart>33</LineStart>
+<Snippet>	public static Item load(String siteId, Long itemId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Item item = (Item) session.get(Item.class, itemId);
+		if (!item.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="0ACF06268E7EA46DA4E54D08B53C9680">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 97 of HomePageMaintAction.java, save() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>HomePageMaintAction.java</FileName>
+<FilePath>jada/admin/homePage/HomePageMaintAction.java</FilePath>
+<LineStart>97</LineStart>
+<Snippet>        		continue;
+        	}
+        	session.delete(siteParam);
+        }
+    	SiteParam siteParam = new SiteParam();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>AdminBean.java</FileName>
+<FilePath>jada/admin/AdminBean.java</FilePath>
+<LineStart>76</LineStart>
+<Snippet>		Site site = (Site) session.get(Site.class, siteId);
+		if (site == null) {
+			site = (Site) session.get(Site.class, Constants.SITE_DEFAULT);
+		}
+		return site;</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="75F37940178B16F90FFFEC6D8803390C">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 254 of ContentMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContentMaintAction.java</FileName>
+<FilePath>jada/admin/content/ContentMaintAction.java</FilePath>
+<LineStart>254</LineStart>
+<Snippet>				menu.setContent(null);
+			}
+			session.delete(content);
+			session.getTransaction().commit();
+		}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ContentDAO.java</FileName>
+<FilePath>jada/dao/ContentDAO.java</FilePath>
+<LineStart>33</LineStart>
+<Snippet>	public static Content load(String siteId, Long contentId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Content content = (Content) session.get(Content.class, contentId);
+		if (!content.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="E71F31C039565F0F1D5965E42E47532B">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 193 of SiteLoader.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SiteLoader.java</FileName>
+<FilePath>jada/admin/site/SiteLoader.java</FilePath>
+<LineStart>193</LineStart>
+<Snippet>        while (iterator.hasNext()) {
+        	ShippingMethod shippingMethod = (ShippingMethod) iterator.next();
+        	session.delete(shippingMethod);
+        }
+</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SiteLoader.java</FileName>
+<FilePath>jada/admin/site/SiteLoader.java</FilePath>
+<LineStart>190</LineStart>
+<Snippet>        query = session.createQuery(sql);
+        query.setString(&quot;siteId&quot;, siteId);
+        iterator = query.iterate();
+        while (iterator.hasNext()) {
+        	ShippingMethod shippingMethod = (ShippingMethod) iterator.next();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="64886642CB17C58C984908F51E032BEB">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 97 of HomePageMaintAction.java, save() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>HomePageMaintAction.java</FileName>
+<FilePath>jada/admin/homePage/HomePageMaintAction.java</FilePath>
+<LineStart>97</LineStart>
+<Snippet>        		continue;
+        	}
+        	session.delete(siteParam);
+        }
+    	SiteParam siteParam = new SiteParam();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>AdminBean.java</FileName>
+<FilePath>jada/admin/AdminBean.java</FilePath>
+<LineStart>74</LineStart>
+<Snippet>	public Site getSite() throws Exception {
+		Session session = HibernateConnection.getInstance().getCurrentSession();
+		Site site = (Site) session.get(Site.class, siteId);
+		if (site == null) {
+			site = (Site) session.get(Site.class, Constants.SITE_DEFAULT);</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="7811C7FA745A7FF03D918F92BF71C70F">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 160 of ShippingMethodMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ShippingMethodMaintAction.java</FileName>
+<FilePath>jada/admin/shipping/ShippingMethodMaintAction.java</FilePath>
+<LineStart>160</LineStart>
+<Snippet>		ShippingMethodMaintActionForm form = (ShippingMethodMaintActionForm) actionForm;
+		ShippingMethod shippingMethod = ShippingMethodDAO.load(getAdminBean(request).getSiteId(), Format.getLong(form.getShippingMethodId()));
+		session.delete(shippingMethod);
+		ActionForward actionForward = actionMapping.findForward(&quot;removeSuccess&quot;);
+		return actionForward;</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ShippingMethodDAO.java</FileName>
+<FilePath>jada/dao/ShippingMethodDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static ShippingMethod load(String siteId, Long shippingMethodId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		ShippingMethod shippingmethod = (ShippingMethod) session.get(ShippingMethod.class, shippingMethodId);
+		if (!shippingmethod.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="F4ACD339517FCC1A5AE2E9DEA55E3A91">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 166 of ShippingRegionListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ShippingRegionListingAction.java</FileName>
+<FilePath>jada/admin/shipping/ShippingRegionListingAction.java</FilePath>
+<LineStart>166</LineStart>
+<Snippet>	            while (iterator.hasNext()) {
+	            	ShippingMethodRegion shippingMethodRegion = (ShippingMethodRegion) iterator.next();
+	            	session.delete(shippingMethodRegion);
+	            }
+	            session.delete(shippingRegion);</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ShippingRegionDAO.java</FileName>
+<FilePath>jada/dao/ShippingRegionDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static ShippingRegion load(String siteId, Long shippingRegionId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		ShippingRegion shippingregion = (ShippingRegion) session.get(ShippingRegion.class, shippingRegionId);
+		if (!shippingregion.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="4B673A45-9AD5-4CBA-945B-11A3702CDF57" iid="2EE95904A97C48A510F480F30C1025B9">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 179 of DatabaseLoadAction.java, the method loadCreate() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>DatabaseLoadAction.java</FileName>
+<FilePath>jada/install/process/DatabaseLoadAction.java</FilePath>
+<LineStart>179</LineStart>
+<Snippet>    				continue;
+    			}
+    			connection.createStatement().executeUpdate(sql);
+    		}
+    		catch (Exception e) {</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="CFD55A86BD7B21F7A3BD6DBDC093EE61">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 202 of SiteLoader.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SiteLoader.java</FileName>
+<FilePath>jada/admin/site/SiteLoader.java</FilePath>
+<LineStart>202</LineStart>
+<Snippet>        while (iterator.hasNext()) {
+        	ShippingRegion shippingRegion = (ShippingRegion) iterator.next();
+        	session.delete(shippingRegion);
+        }
+        </Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SiteLoader.java</FileName>
+<FilePath>jada/admin/site/SiteLoader.java</FilePath>
+<LineStart>199</LineStart>
+<Snippet>        query = session.createQuery(sql);
+        query.setString(&quot;siteId&quot;, siteId);
+        iterator = query.iterate();
+        while (iterator.hasNext()) {
+        	ShippingRegion shippingRegion = (ShippingRegion) iterator.next();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="E8EF3E68EB51ED95C1F2F70344C29989">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 439 of SectionMaintAction.java, cascadeRemoveSection() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SectionMaintAction.java</FileName>
+<FilePath>jada/admin/section/SectionMaintAction.java</FilePath>
+<LineStart>439</LineStart>
+<Snippet>    	session.flush();
+    	
+    	session.delete(section);
+    	return;
+    }</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SectionDAO.java</FileName>
+<FilePath>jada/dao/SectionDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static Section load(String siteId, Long sectionId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Section section = (Section) session.get(Section.class, sectionId);
+		if (!section.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="7C366E6001A35B4AFBE967C6F8DFE98B">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 168 of ShippingRegionListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ShippingRegionListingAction.java</FileName>
+<FilePath>jada/admin/shipping/ShippingRegionListingAction.java</FilePath>
+<LineStart>168</LineStart>
+<Snippet>	            	session.delete(shippingMethodRegion);
+	            }
+	            session.delete(shippingRegion);
+	        }
+        }</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ShippingRegionDAO.java</FileName>
+<FilePath>jada/dao/ShippingRegionDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static ShippingRegion load(String siteId, Long shippingRegionId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		ShippingRegion shippingregion = (ShippingRegion) session.get(ShippingRegion.class, shippingRegionId);
+		if (!shippingregion.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="E73619C3B4546CFAC8A49A71D527D76B">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 348 of OrderEngine.java, removeCredit() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>OrderEngine.java</FileName>
+<FilePath>jada/content/payment/OrderEngine.java</FilePath>
+<LineStart>348</LineStart>
+<Snippet>		for (int i = 0; i &lt; creditDetails.length; i++) {
+			creditHeader.getCreditDetails().remove(creditDetails[i]);
+			session.delete(creditDetails[i]);
+		}
+		</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>CreditHeaderDAO.java</FileName>
+<FilePath>jada/dao/CreditHeaderDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static CreditHeader load(String siteId, Long creditHeaderId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		CreditHeader creditheader = (CreditHeader) session.get(CreditHeader.class, creditHeaderId);
+		if (!creditheader.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="30146BF93B8FB8974B38F9FB6FFB39B5">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 138 of UserListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>UserListingAction.java</FileName>
+<FilePath>jada/admin/user/UserListingAction.java</FilePath>
+<LineStart>138</LineStart>
+<Snippet>            User user = new User();
+            user = UserDAO.load(users[i].getUserId(), signinUser);
+            session.delete(user);
+        }
+</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>UserDAO.java</FileName>
+<FilePath>jada/dao/UserDAO.java</FilePath>
+<LineStart>38</LineStart>
+<Snippet>    	}
+    	
+		User user = (User) session.get(User.class, userId);
+		if (!hasAccess(signinUser, user)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="CF5696BE5E07E35E55C374C3251E67D1">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 136 of PollMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>PollMaintAction.java</FileName>
+<FilePath>jada/admin/poll/PollMaintAction.java</FilePath>
+<LineStart>136</LineStart>
+<Snippet>		PollMaintActionForm form = (PollMaintActionForm) actionForm;
+		PollHeader pollHeader = PollHeaderDAO.load(getAdminBean(request).getSiteId(), Format.getLong(form.getPollHeaderId()));
+		session.delete(pollHeader);
+		ActionForward actionForward = actionMapping.findForward(&quot;removeSuccess&quot;);
+		return actionForward;</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>PollHeaderDAO.java</FileName>
+<FilePath>jada/dao/PollHeaderDAO.java</FilePath>
+<LineStart>34</LineStart>
+<Snippet>	public static PollHeader load(String siteId, Long pollHeaderId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		PollHeader pollheader = (PollHeader) session.get(PollHeader.class, pollHeaderId);
+		if (!pollheader.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="9D38CB55B4B9ACCCFD057426F0B996AD">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 210 of ContentMaintAction.java, save() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContentMaintAction.java</FileName>
+<FilePath>jada/admin/content/ContentMaintAction.java</FilePath>
+<LineStart>210</LineStart>
+<Snippet>		else {
+			if (homePage != null) {
+				session.delete(homePage);
+			}
+		}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ContentMaintAction.java</FileName>
+<FilePath>jada/admin/content/ContentMaintAction.java</FilePath>
+<LineStart>722</LineStart>
+<Snippet>		Query query = session.createQuery(&quot;from HomePage homePage where siteId = :siteId&quot;);
+		query.setString(&quot;siteId&quot;, adminBean.getSite().getSiteId());
+		Iterator iterator = query.list().iterator();
+		while (iterator.hasNext()) {
+			HomePage homePage = (HomePage) iterator.next();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="6577EF16-48D1-4C99-81DE-C883ABB82E25" iid="9FB5B86FF729CA4C8BCB3327146A37CD">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 107 of ItemListingAction.java, the method extract() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>ItemListingAction.java</FileName>
+<FilePath>jada/admin/item/ItemListingAction.java</FilePath>
+<LineStart>107</LineStart>
+<Snippet>        }
+
+        query = session.createQuery(sql);
+        Date highDate = dateFormat.parse(&quot;31-12-2999&quot;);
+        Date lowDate = dateFormat.parse(&quot;01-01-1900&quot;);</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="7D8E18A6A3B8DA4BF99786F5F8412991">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 596 of ContentMaintAction.java, removeImages() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContentMaintAction.java</FileName>
+<FilePath>jada/admin/content/ContentMaintAction.java</FilePath>
+<LineStart>596</LineStart>
+<Snippet>					content.setImage(null);
+					session.save(content);
+					session.delete(defaultImage);
+					defaultImage = null;
+				}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ContentDAO.java</FileName>
+<FilePath>jada/dao/ContentDAO.java</FilePath>
+<LineStart>33</LineStart>
+<Snippet>	public static Content load(String siteId, Long contentId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Content content = (Content) session.get(Content.class, contentId);
+		if (!content.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="1ED7791642389D0B0FE87DF8CDEDAA42">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 121 of ShippingRegionMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ShippingRegionMaintAction.java</FileName>
+<FilePath>jada/admin/shipping/ShippingRegionMaintAction.java</FilePath>
+<LineStart>121</LineStart>
+<Snippet>		ShippingRegionMaintActionForm form = (ShippingRegionMaintActionForm) actionForm;
+		ShippingRegion shippingRegion = ShippingRegionDAO.load(getAdminBean(request).getSiteId(), Format.getLong(form.getShippingRegionId()));
+		session.delete(shippingRegion);
+		ActionForward actionForward = actionMapping.findForward(&quot;removeSuccess&quot;);
+		return actionForward;</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ShippingRegionDAO.java</FileName>
+<FilePath>jada/dao/ShippingRegionDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static ShippingRegion load(String siteId, Long shippingRegionId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		ShippingRegion shippingregion = (ShippingRegion) session.get(ShippingRegion.class, shippingRegionId);
+		if (!shippingregion.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="6577EF16-48D1-4C99-81DE-C883ABB82E25" iid="0F187C53EEEE9A1E22ADB35F52D4E4EC">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 100 of ContentListingAction.java, the method extract() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>ContentListingAction.java</FileName>
+<FilePath>jada/admin/content/ContentListingAction.java</FilePath>
+<LineStart>100</LineStart>
+<Snippet>        }
+
+        query = session.createQuery(sql);
+        Date highDate = dateFormat.parse(&quot;31-12-2999&quot;);
+        Date lowDate = dateFormat.parse(&quot;01-01-1900&quot;);</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="97762171E41B4DAC98A4D9651611DE11">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 525 of MenuMaintAction1.java, cascadeRemoveMenu() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>MenuMaintAction1.java</FileName>
+<FilePath>jada/admin/menu/MenuMaintAction1.java</FilePath>
+<LineStart>525</LineStart>
+<Snippet>    	}
+    	Menu menu = MenuDAO.load(siteId, menuId);
+    	session.delete(menu);
+    	return;
+    }</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>MenuDAO.java</FileName>
+<FilePath>jada/dao/MenuDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static Menu load(String siteId, Long menuId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Menu menu = (Menu) session.get(Menu.class, menuId);
+		if (!menu.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="E3920E67E99310B992A4F0465165574E">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 268 of ItemListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ItemListingAction.java</FileName>
+<FilePath>jada/admin/item/ItemListingAction.java</FilePath>
+<LineStart>268</LineStart>
+<Snippet>	            Item item = new Item();
+	            item = ItemDAO.load(getAdminBean(request).getSiteId(), Format.getLong(itemIds[i]));
+	            session.delete(item);
+	        }
+        }</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ItemDAO.java</FileName>
+<FilePath>jada/dao/ItemDAO.java</FilePath>
+<LineStart>33</LineStart>
+<Snippet>	public static Item load(String siteId, Long itemId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Item item = (Item) session.get(Item.class, itemId);
+		if (!item.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="DC2B9998535D1FF1244407962F71AFDD">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 137 of SiteMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SiteMaintAction.java</FileName>
+<FilePath>jada/admin/site/SiteMaintAction.java</FilePath>
+<LineStart>137</LineStart>
+<Snippet>			SiteLoader siteLoader = new SiteLoader(form.getSiteId(), user.getUserId());
+			siteLoader.remove();
+			session.delete(site);
+	        session.getTransaction().commit();
+			SiteCache.removeSite(form.getSiteId());</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SiteDAO.java</FileName>
+<FilePath>jada/dao/SiteDAO.java</FilePath>
+<LineStart>44</LineStart>
+<Snippet>    	}
+    	
+		Site site = (Site) session.get(Site.class, siteId);
+		return site;
+	}</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="F37204903F29C316E00869CB8546488A">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 296 of ItemMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ItemMaintAction.java</FileName>
+<FilePath>jada/admin/item/ItemMaintAction.java</FilePath>
+<LineStart>296</LineStart>
+<Snippet>			ItemImage itemImage = item.getImage();
+			if (itemImage != null) {
+				session.delete(itemImage);
+			}
+			Iterator iterator = item.getImages().iterator();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ItemDAO.java</FileName>
+<FilePath>jada/dao/ItemDAO.java</FilePath>
+<LineStart>33</LineStart>
+<Snippet>	public static Item load(String siteId, Long itemId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Item item = (Item) session.get(Item.class, itemId);
+		if (!item.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="26020652DFAEB578602CE583EDAD12B3">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 147 of ShippingTypeListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ShippingTypeListingAction.java</FileName>
+<FilePath>jada/admin/shipping/ShippingTypeListingAction.java</FilePath>
+<LineStart>147</LineStart>
+<Snippet>						ShippingMethodRegionType shippingMethodRegionType = (ShippingMethodRegionType) iterator.next();
+						session.delete(shippingMethodRegionType.getShippingRate());
+						session.delete(shippingMethodRegionType);
+					}
+		            session.delete(shippingType);</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ShippingTypeDAO.java</FileName>
+<FilePath>jada/dao/ShippingTypeDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static ShippingType load(String siteId, Long shippingTypeId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		ShippingType shippingtype = (ShippingType) session.get(ShippingType.class, shippingTypeId);
+		if (!shippingtype.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="5F341C68675E0C3E96B7090A491BE0E8">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 218 of ContentListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContentListingAction.java</FileName>
+<FilePath>jada/admin/content/ContentListingAction.java</FilePath>
+<LineStart>218</LineStart>
+<Snippet>					ContentImage contentImage = content.getImage();
+					if (contentImage != null) {
+						session.delete(contentImage);
+					}
+					Iterator iterator = content.getImages().iterator();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ContentDAO.java</FileName>
+<FilePath>jada/dao/ContentDAO.java</FilePath>
+<LineStart>33</LineStart>
+<Snippet>	public static Content load(String siteId, Long contentId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Content content = (Content) session.get(Content.class, contentId);
+		if (!content.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="F84944C50AD0E471EA1B1134F2558B6C">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 146 of ShippingTypeListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ShippingTypeListingAction.java</FileName>
+<FilePath>jada/admin/shipping/ShippingTypeListingAction.java</FilePath>
+<LineStart>146</LineStart>
+<Snippet>					while (iterator.hasNext()) {
+						ShippingMethodRegionType shippingMethodRegionType = (ShippingMethodRegionType) iterator.next();
+						session.delete(shippingMethodRegionType.getShippingRate());
+						session.delete(shippingMethodRegionType);
+					}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ShippingTypeDAO.java</FileName>
+<FilePath>jada/dao/ShippingTypeDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static ShippingType load(String siteId, Long shippingTypeId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		ShippingType shippingtype = (ShippingType) session.get(ShippingType.class, shippingTypeId);
+		if (!shippingtype.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="F37204903F29C316E00869CB8546488B">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 301 of ItemMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ItemMaintAction.java</FileName>
+<FilePath>jada/admin/item/ItemMaintAction.java</FilePath>
+<LineStart>301</LineStart>
+<Snippet>			while (iterator.hasNext()) {
+				itemImage = (ItemImage) iterator.next();
+				session.delete(itemImage);
+			}
+			iterator = (Iterator) item.getMenus().iterator();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ItemDAO.java</FileName>
+<FilePath>jada/dao/ItemDAO.java</FilePath>
+<LineStart>33</LineStart>
+<Snippet>	public static Item load(String siteId, Long itemId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Item item = (Item) session.get(Item.class, itemId);
+		if (!item.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="AB18F174D6FE0F27C2D7F1A703C977E9">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 238 of ItemListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ItemListingAction.java</FileName>
+<FilePath>jada/admin/item/ItemListingAction.java</FilePath>
+<LineStart>238</LineStart>
+<Snippet>					ItemImage itemImage = item.getImage();
+					if (itemImage != null) {
+						session.delete(itemImage);
+					}
+					Iterator iterator = item.getImages().iterator();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ItemDAO.java</FileName>
+<FilePath>jada/dao/ItemDAO.java</FilePath>
+<LineStart>33</LineStart>
+<Snippet>	public static Item load(String siteId, Long itemId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Item item = (Item) session.get(Item.class, itemId);
+		if (!item.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="5F9682D18CB2E7717F166D14C3721D04">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 355 of OrderEngine.java, removeCredit() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>OrderEngine.java</FileName>
+<FilePath>jada/content/payment/OrderEngine.java</FilePath>
+<LineStart>355</LineStart>
+<Snippet>		for (int i = 0; i &lt; creditTaxes.length; i++) {
+			creditHeader.getCreditTaxes().remove(creditTaxes[i]);
+			session.delete(creditTaxes[i]);
+		}
+		</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>CreditHeaderDAO.java</FileName>
+<FilePath>jada/dao/CreditHeaderDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static CreditHeader load(String siteId, Long creditHeaderId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		CreditHeader creditheader = (CreditHeader) session.get(CreditHeader.class, creditHeaderId);
+		if (!creditheader.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="E3920E67E99310B992A4F0465165574D">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 250 of ItemListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ItemListingAction.java</FileName>
+<FilePath>jada/admin/item/ItemListingAction.java</FilePath>
+<LineStart>250</LineStart>
+<Snippet>						menu.setItem(null);
+					}
+		            session.delete(item);
+		        }
+		        session.getTransaction().commit();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ItemDAO.java</FileName>
+<FilePath>jada/dao/ItemDAO.java</FilePath>
+<LineStart>33</LineStart>
+<Snippet>	public static Item load(String siteId, Long itemId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Item item = (Item) session.get(Item.class, itemId);
+		if (!item.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="9C13B1F4A234596F099EAE9E33A1D6AE">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 169 of PollListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>PollListingAction.java</FileName>
+<FilePath>jada/admin/poll/PollListingAction.java</FilePath>
+<LineStart>169</LineStart>
+<Snippet>	            PollHeader pollHeader = new PollHeader();
+	            pollHeader = PollHeaderDAO.load(getAdminBean(request).getSiteId(), Format.getLong(pollHeaderIds[i]));
+	            session.delete(pollHeader);
+	        }
+        }</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>PollHeaderDAO.java</FileName>
+<FilePath>jada/dao/PollHeaderDAO.java</FilePath>
+<LineStart>34</LineStart>
+<Snippet>	public static PollHeader load(String siteId, Long pollHeaderId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		PollHeader pollheader = (PollHeader) session.get(PollHeader.class, pollHeaderId);
+		if (!pollheader.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="4B673A45-9AD5-4CBA-945B-11A3702CDF57" iid="BB313D75A6B6B1F350643239F285DF60">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 199 of DatabaseLoadAction.java, the method loadIndex() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>DatabaseLoadAction.java</FileName>
+<FilePath>jada/install/process/DatabaseLoadAction.java</FilePath>
+<LineStart>199</LineStart>
+<Snippet>    			}
+    			System.out.println(sql);
+    			connection.createStatement().executeUpdate(sql);
+    		}
+    		catch (Exception e) {</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="4DC28B66214D9AE75CF9C9DD15A8FA7A">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 183 of TemplateListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>TemplateListingAction.java</FileName>
+<FilePath>jada/admin/template/TemplateListingAction.java</FilePath>
+<LineStart>183</LineStart>
+<Snippet>	    	}
+			
+			session.delete(template);
+		}
+        ActionForward forward = new ActionForward();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>TemplateDAO.java</FileName>
+<FilePath>jada/dao/TemplateDAO.java</FilePath>
+<LineStart>48</LineStart>
+<Snippet>	    query.setString(&quot;siteId&quot;, siteId);
+	    query.setString(&quot;templateName&quot;, templateName);
+	    Iterator iterator = query.iterate();
+	    if(iterator == null)
+	        return null;</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="1D7254ED3FD7C18A5320D4D739DCB638">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 145 of TaxListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>TaxListingAction.java</FileName>
+<FilePath>jada/admin/tax/TaxListingAction.java</FilePath>
+<LineStart>145</LineStart>
+<Snippet>	            Tax tax = new Tax();
+	            tax = TaxDAO.load(getAdminBean(request).getSiteId(), Format.getLong(taxIds[i]));
+	            session.delete(tax);
+	        }
+        }</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>TaxDAO.java</FileName>
+<FilePath>jada/dao/TaxDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static Tax load(String siteId, Long taxId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Tax tax = (Tax) session.get(Tax.class, taxId);
+		if (!tax.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="2927DA1287204F350FBEEE215E47AD35">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 242 of SiteMaintAction.java, save() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SiteMaintAction.java</FileName>
+<FilePath>jada/admin/site/SiteMaintAction.java</FilePath>
+<LineStart>242</LineStart>
+<Snippet>        		continue;
+        	}
+        	session.delete(siteParam);
+        }
+        </Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SiteDAO.java</FileName>
+<FilePath>jada/dao/SiteDAO.java</FilePath>
+<LineStart>44</LineStart>
+<Snippet>    	}
+    	
+		Site site = (Site) session.get(Site.class, siteId);
+		return site;
+	}</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="25B9AE3811C6B3ECA652E2B938D1C1BA">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 195 of OrderListingAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>OrderListingAction.java</FileName>
+<FilePath>jada/admin/inventory/OrderListingAction.java</FilePath>
+<LineStart>195</LineStart>
+<Snippet>	        for (int i = 0; i &lt; orderHeaderIds.length; i++) {
+	            OrderHeader orderHeader = OrderHeaderDAO.load(getAdminBean(request).getSiteId(), Format.getLong(orderHeaderIds[i]));
+	            session.delete(orderHeader);
+	        }
+        }</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>OrderHeaderDAO.java</FileName>
+<FilePath>jada/dao/OrderHeaderDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static OrderHeader load(String siteId, Long orderHeaderId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		OrderHeader orderheader = (OrderHeader) session.get(OrderHeader.class, orderHeaderId);
+		if (!orderheader.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="7365F17FC4297D4A3F3B77E35C54AF80">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 347 of SectionMaintAction1.java, cascadeRemoveSection() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SectionMaintAction1.java</FileName>
+<FilePath>jada/admin/section/SectionMaintAction1.java</FilePath>
+<LineStart>347</LineStart>
+<Snippet>    	session.flush();
+    	
+    	session.delete(section);
+    	return;
+    }</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SectionDAO.java</FileName>
+<FilePath>jada/dao/SectionDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static Section load(String siteId, Long sectionId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Section section = (Section) session.get(Section.class, sectionId);
+		if (!section.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="CEBC814B44514365ECC612FAFD2CD978">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 305 of TemplateMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>TemplateMaintAction.java</FileName>
+<FilePath>jada/admin/template/TemplateMaintAction.java</FilePath>
+<LineStart>305</LineStart>
+<Snippet>		Session session = HibernateConnection.getInstance().getCurrentSession();
+		Template template = TemplateDAO.load(site.getSiteId(), form.getTemplateName());
+		session.delete(template);
+		return mapping.findForward(&quot;removeSuccess&quot;);
+	}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>TemplateDAO.java</FileName>
+<FilePath>jada/dao/TemplateDAO.java</FilePath>
+<LineStart>48</LineStart>
+<Snippet>	    query.setString(&quot;siteId&quot;, siteId);
+	    query.setString(&quot;templateName&quot;, templateName);
+	    Iterator iterator = query.iterate();
+	    if(iterator == null)
+	        return null;</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="619ABC2810AC96E43094F0FA919B2EE1">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 358 of OrderEngine.java, removeCredit() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>OrderEngine.java</FileName>
+<FilePath>jada/content/payment/OrderEngine.java</FilePath>
+<LineStart>358</LineStart>
+<Snippet>		}
+		
+		session.delete(creditHeader);
+	}
+	</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>CreditHeaderDAO.java</FileName>
+<FilePath>jada/dao/CreditHeaderDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static CreditHeader load(String siteId, Long creditHeaderId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		CreditHeader creditheader = (CreditHeader) session.get(CreditHeader.class, creditHeaderId);
+		if (!creditheader.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="C1EA0D37996EAB754D704BC177A055C1">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 211 of SiteLoader.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SiteLoader.java</FileName>
+<FilePath>jada/admin/site/SiteLoader.java</FilePath>
+<LineStart>211</LineStart>
+<Snippet>        while (iterator.hasNext()) {
+        	ShippingType shippingType = (ShippingType) iterator.next();
+        	session.delete(shippingType);
+        }
+	}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SiteLoader.java</FileName>
+<FilePath>jada/admin/site/SiteLoader.java</FilePath>
+<LineStart>208</LineStart>
+<Snippet>        query = session.createQuery(sql);
+        query.setString(&quot;siteId&quot;, siteId);
+        iterator = query.iterate();
+        while (iterator.hasNext()) {
+        	ShippingType shippingType = (ShippingType) iterator.next();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="7131D322915991F17F2A8B37CC457682">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 117 of OrderMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>OrderMaintAction.java</FileName>
+<FilePath>jada/admin/inventory/OrderMaintAction.java</FilePath>
+<LineStart>117</LineStart>
+<Snippet>		OrderHeaderForm form = (OrderHeaderForm) actionForm;
+		OrderHeader order = OrderHeaderDAO.load(getAdminBean(request).getSiteId(), Format.getLong(form.getOrderHeaderId()));
+		session.delete(order);
+		ActionForward actionForward = actionMapping.findForward(&quot;removeSuccess&quot;);
+		return actionForward;</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>OrderHeaderDAO.java</FileName>
+<FilePath>jada/dao/OrderHeaderDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static OrderHeader load(String siteId, Long orderHeaderId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		OrderHeader orderheader = (OrderHeader) session.get(OrderHeader.class, orderHeaderId);
+		if (!orderheader.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="03D0C33964BF6E481A55EF52CC386B80">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 308 of ItemMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ItemMaintAction.java</FileName>
+<FilePath>jada/admin/item/ItemMaintAction.java</FilePath>
+<LineStart>308</LineStart>
+<Snippet>				menu.setItem(null);
+			}
+			session.delete(item);
+			session.getTransaction().commit();
+		}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ItemDAO.java</FileName>
+<FilePath>jada/dao/ItemDAO.java</FilePath>
+<LineStart>33</LineStart>
+<Snippet>	public static Item load(String siteId, Long itemId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Item item = (Item) session.get(Item.class, itemId);
+		if (!item.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="926204B45646CC8F70FF787D4179EC7C">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 166 of SiteLoader.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SiteLoader.java</FileName>
+<FilePath>jada/admin/site/SiteLoader.java</FilePath>
+<LineStart>166</LineStart>
+<Snippet>        	State state = (State) iterator.next();
+        	state.setCountry(null);
+        	session.delete(state);
+        }
+     </Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SiteLoader.java</FileName>
+<FilePath>jada/admin/site/SiteLoader.java</FilePath>
+<LineStart>162</LineStart>
+<Snippet>        query = session.createQuery(sql);
+        query.setString(&quot;siteId&quot;, siteId);
+        iterator = query.iterate();
+        while (iterator.hasNext()) {
+        	State state = (State) iterator.next();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="3BB467E22533A7A1C09EB1DA6C245397">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 745 of ItemMaintAction.java, removeImages() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ItemMaintAction.java</FileName>
+<FilePath>jada/admin/item/ItemMaintAction.java</FilePath>
+<LineStart>745</LineStart>
+<Snippet>					item.setImage(null);
+					session.save(item);
+					session.delete(defaultImage);
+					defaultImage = null;
+				}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ItemDAO.java</FileName>
+<FilePath>jada/dao/ItemDAO.java</FilePath>
+<LineStart>33</LineStart>
+<Snippet>	public static Item load(String siteId, Long itemId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Item item = (Item) session.get(Item.class, itemId);
+		if (!item.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="405984EBFC0C3A39ECEC5D4BE390D251">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 107 of ShippingTypeMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ShippingTypeMaintAction.java</FileName>
+<FilePath>jada/admin/shipping/ShippingTypeMaintAction.java</FilePath>
+<LineStart>107</LineStart>
+<Snippet>			while (iterator.hasNext()) {
+				ShippingMethodRegionType shippingMethodRegionType = (ShippingMethodRegionType) iterator.next();
+				session.delete(shippingMethodRegionType.getShippingRate());
+				session.delete(shippingMethodRegionType);
+			}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ShippingTypeDAO.java</FileName>
+<FilePath>jada/dao/ShippingTypeDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static ShippingType load(String siteId, Long shippingTypeId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		ShippingType shippingtype = (ShippingType) session.get(ShippingType.class, shippingTypeId);
+		if (!shippingtype.getSiteId().equals(siteId)) {
+			throw new SecurityException();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="E6C743C91C3D8A6E65D868A3440016F7">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 151 of SiteLoader.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SiteLoader.java</FileName>
+<FilePath>jada/admin/site/SiteLoader.java</FilePath>
+<LineStart>151</LineStart>
+<Snippet>        	}
+        	
+        	session.delete(tax);
+        }
+        </Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SiteLoader.java</FileName>
+<FilePath>jada/admin/site/SiteLoader.java</FilePath>
+<LineStart>125</LineStart>
+<Snippet>        query = session.createQuery(sql);
+        query.setString(&quot;siteId&quot;, siteId);
+        iterator = query.iterate();
+        while (iterator.hasNext()) {
+        	Tax tax = (Tax) iterator.next();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="936A8AE4-FC97-4184-A2BA-C320BA816057" iid="CACBC13748EAB5FA2726C7413167FCAB">
+                            <Category>SQL Injection: Hibernate</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 115 of ContactUsMaintAction.java, remove() uses Hibernate to execute a dynamic SQL statement built with unvalidated user input. An attacker could modify the statement's meaning or execute arbitrary SQL commands. </Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ContactUsMaintAction.java</FileName>
+<FilePath>jada/admin/contactus/ContactUsMaintAction.java</FilePath>
+<LineStart>115</LineStart>
+<Snippet>		ContactUsMaintActionForm form = (ContactUsMaintActionForm) actionForm;
+		ContactUs contactUs = ContactUsDAO.load(getAdminBean(request).getSiteId(), Format.getLong(form.getContactUsId()));
+		session.delete(contactUs);
+		ActionForward actionForward = actionMapping.findForward(&quot;removeSuccess&quot;);
+		return actionForward;</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ContactUsDAO.java</FileName>
+<FilePath>jada/dao/ContactUsDAO.java</FilePath>
+<LineStart>30</LineStart>
+<Snippet>	public static ContactUs load(String siteId, Long contactUsId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		ContactUs contactUs = (ContactUs) session.get(ContactUs.class, contactUsId);
+		if (!contactUs.getSiteId().equals(siteId)) {
+			throw new SecurityException(&quot;&quot;);</Snippet>
+                            </Source>
+                        </Issue>
+                    </GroupingSection>
+                    <GroupingSection count="11">
+                        <groupTitle>A2 Cross-Site Scripting (XSS)</groupTitle>
+                        <MajorAttributeSummary>
+                            <MetaInfo>
+<Name>Abstract</Name>
+<Value>Sending unvalidated data to a web browser can result in the browser executing malicious code.</Value>
+                            </MetaInfo>
+                            <MetaInfo>
+<Name>Explanation</Name>
+<Value>Cross-site scripting (XSS) vulnerabilities occur when:
+
+1. Data enters a web application through an untrusted source. In the case of Reflected XSS, the untrusted source is typically a web request, while in the case of Persisted (also known as Stored) XSS it is typically a database or other back-end datastore.
+
+
+2. The data is included in dynamic content that is sent to a web user without being validated for malicious code. 
+
+The malicious content sent to the web browser often takes the form of a segment of JavaScript, but may also include HTML, Flash or any other type of code that the browser may execute. The variety of attacks based on XSS is almost limitless, but they commonly include transmitting private data like cookies or other session information to the attacker, redirecting the victim to web content controlled by the attacker, or performing other malicious operations on the user's machine under the guise of the vulnerable site.
+
+Example 1: The following JSP code segment reads an employee ID, eid, from an HTTP request and displays it to the user. 
+
+
+&lt;% String eid = request.getParameter(&quot;eid&quot;); %&gt; 
+...
+Employee ID: &lt;%= eid %&gt;
+
+
+The code in this example operates correctly if eid contains only standard alphanumeric text. If eid has a value that includes meta-characters or source code, then the code will be executed by the web browser as it displays the HTTP response.
+
+Initially this might not appear to be much of a vulnerability. After all, why would someone enter a URL that causes malicious code to run on their own computer? The real danger is that an attacker will create the malicious URL, then use e-mail or social engineering tricks to lure victims into visiting a link to the URL. When victims click the link, they unwittingly reflect the malicious content through the vulnerable web application back to their own computers. This mechanism of exploiting vulnerable web applications is known as Reflected XSS.
+
+Example 2: The following JSP code segment queries a database for an employee with a given ID and prints the corresponding employee's name.
+
+ 
+&lt;%... 
+ Statement stmt = conn.createStatement();
+ ResultSet rs = stmt.executeQuery(&quot;select * from emp where id=&quot;+eid);
+ if (rs != null) {
+  rs.next(); 
+  String name = rs.getString(&quot;name&quot;);
+%&gt;
+
+Employee Name: &lt;%= name %&gt;
+
+
+As in Example 1, this code functions correctly when the values of name are well-behaved, but it does nothing to prevent exploits if they are not. Again, this code can appear less dangerous because the value of name is read from a database, whose contents are apparently managed by the application. However, if the value of name originates from user-supplied data, then the database can be a conduit for malicious content. Without proper input validation on all data stored in the database, an attacker can execute malicious commands in the user's web browser. This type of exploit, known as Persistent (or Stored) XSS, is particularly insidious because the indirection caused by the data store makes it more difficult to identify the threat and increases the possibility that the attack will affect multiple users. XSS got its start in this form with web sites that offered a &quot;guestbook&quot; to visitors. Attackers would include JavaScript in their guestbook entries, and all subsequent visitors to the guestbook page would execute the malicious code.
+
+As the examples demonstrate, XSS vulnerabilities are caused by code that includes unvalidated data in an HTTP response. There are three vectors by which an XSS attack can reach a victim:
+
+- As in Example 1, data is read directly from the HTTP request and reflected back in the HTTP response. Reflected XSS exploits occur when an attacker causes a user to supply dangerous content to a vulnerable web application, which is then reflected back to the user and executed by the web browser. The most common mechanism for delivering malicious content is to include it as a parameter in a URL that is posted publicly or e-mailed directly to victims. URLs constructed in this manner constitute the core of many phishing schemes, whereby an attacker convinces victims to visit a URL that refers to a vulnerable site. After the site reflects the attacker's content back to the user, the content is executed and proceeds to transfer private information, such as cookies that may include session information, from the user's machine to the attacker or perform other nefarious activities.
+
+- As in Example 2, the application stores dangerous data in a database or other trusted data store. The dangerous data is subsequently read back into the application and included in dynamic content. Persistent XSS exploits occur when an attacker injects dangerous content into a data store that is later read and included in dynamic content. From an attacker's perspective, the optimal place to inject malicious content is in an area that is displayed to either many users or particularly interesting users. Interesting users typically have elevated privileges in the application or interact with sensitive data that is valuable to the attacker. If one of these users executes malicious content, the attacker may be able to perform privileged operations on behalf of the user or gain access to sensitive data belonging to the user.
+
+- A source outside the application stores dangerous data in a database or other data store, and the dangerous data is subsequently read back into the application as trusted data and included in dynamic content.</Value>
+                            </MetaInfo>
+                            <MetaInfo>
+<Name>Recommendations</Name>
+<Value>The solution to XSS is to ensure that validation occurs in the correct places and checks for the correct properties.
+
+Since XSS vulnerabilities occur when an application includes malicious data in its output, one logical approach is to validate data immediately before it leaves the application. However, because web applications often have complex and intricate code for generating dynamic content, this method is prone to errors of omission (missing validation). An effective way to mitigate this risk is to also perform input validation for XSS.
+
+Web applications must validate their input to prevent other vulnerabilities, such as SQL injection, so augmenting an application's existing input validation mechanism to include checks for XSS is generally relatively easy. Despite its value, input validation for XSS does not take the place of rigorous output validation. An application may accept input through a shared data store or other trusted source, and that data store may accept input from a source that does not perform adequate input validation. Therefore, the application cannot implicitly rely on the safety of this or any other data. This means the best way to prevent XSS vulnerabilities is to validate everything that enters the application or leaves the application destined for the user. 
+
+The most secure approach to validation for XSS is to create a whitelist of safe characters that are allowed to appear in HTTP content and accept input composed exclusively of characters in the approved set. For example, a valid username might only include alpha-numeric characters or a phone number might only include digits 0-9. However, this solution is often infeasible in web applications because many characters that have special meaning to the browser should still be considered valid input once they are encoded, such as a web design bulletin board that must accept HTML fragments from its users. 
+
+A more flexible, but less secure approach is known as blacklisting, which selectively rejects or escapes potentially dangerous characters before using the input. In order to form such a list, you first need to understand the set of characters that hold special meaning for web browsers. Although the HTML standard defines what characters have special meaning, many web browsers try to correct common mistakes in HTML and may treat other characters as special in certain contexts. The CERT(R) Coordination Center at the Software Engineering Institute at Carnegie Mellon University provides the following details about special characters in various contexts [1]:
+
+In the content of a block-level element (in the middle of a paragraph of text):
+
+- &quot;&lt;&quot; is special because it introduces a tag.
+
+- &quot;&amp;&quot; is special because it introduces a character entity.
+
+- &quot;&gt;&quot; is special because some browsers treat it as special, on the assumption that the author of the page intended to include an opening &quot;&lt;&quot;, but omitted it in error.
+
+The following principles apply to attribute values:
+
+- In attribute values enclosed with double quotes, the double quotes are special because they mark the end of the attribute value.
+
+- In attribute values enclosed with single quote, the single quotes are special because they mark the end of the attribute value.
+
+- In attribute values without any quotes, white-space characters, such as space and tab, are special.
+
+- &quot;&amp;&quot; is special when used with certain attributes, because it introduces a character entity. 
+
+In URLs, for example, a search engine might provide a link within the results page that the user can click to re-run the search. This can be implemented by encoding the search query inside the URL, which introduces additional special characters:
+
+- Space, tab, and new line are special because they mark the end of the URL.
+
+- &quot;&amp;&quot; is special because it either introduces a character entity or separates CGI parameters.
+
+- Non-ASCII characters (that is, everything above 128 in the ISO-8859-1 encoding) are not allowed in URLs, so they are considered to be special in this context.
+
+- The &quot;%&quot; symbol must be filtered from input anywhere parameters encoded with HTTP escape sequences are decoded by server-side code. For example, &quot;%&quot; must be filtered if input such as &quot;%68%65%6C%6C%6F&quot; becomes &quot;hello&quot; when it appears on the web page in question.
+
+
+Within the body of a &lt;SCRIPT&gt; &lt;/SCRIPT&gt;:
+
+- The semicolon, parenthesis, curly braces, and new line should be filtered in situations where text could be inserted directly into a pre-existing script tag. 
+
+Server-side scripts:
+
+- Server-side scripts that convert any exclamation characters (!) in input to double-quote characters (&quot;) on output might require additional filtering. 
+
+Other possibilities:
+
+- If an attacker submits a request in UTF-7, the special character '&lt;' appears as '+ADw-' and may bypass filtering. If the output is included in a page that does not explicitly specify an encoding format, then some browsers try to intelligently identify the encoding based on the content (in this case, UTF-7).
+
+Once you identify the correct points in an application to perform validation for XSS attacks and what special characters the validation should consider, the next challenge is to identify how your validation handles special characters. If special characters are not considered valid input to the application, then you can reject any input that contains special characters as invalid. A second option in this situation is to remove special characters with filtering. However, filtering has the side effect of changing any visual representation of the filtered content and may be unacceptable in circumstances where the integrity of the input must be preserved for display.
+
+If input containing special characters must be accepted and displayed accurately, validation must encode any special characters to remove their significance. A complete list of ISO 8859-1 encoded values for special characters is provided as part of the official HTML specification [2].
+
+Many application servers attempt to limit an application's exposure to cross-site scripting vulnerabilities by providing implementations for the functions responsible for setting certain specific HTTP response content that perform validation for the characters essential to a cross-site scripting attack. Do not rely on the server running your application to make it secure. When an application is developed there are no guarantees about what application servers it will run on during its lifetime. As standards and known exploits evolve, there are no guarantees that application servers will also stay in sync.</Value>
+                            </MetaInfo>
+                            <MetaInfo>
+<Name>Tips</Name>
+<Value>1. The HP Fortify Secure Coding Rulepacks treat the database as a source of untrusted data, which can lead to XSS vulnerabilities. If the database is a trusted resource in your environment, use custom filters to filter out dataflow issues that include the DATABASE taint flag or originate from database sources.
+
+2. Even though URL encoding untrusted data protects against many XSS attacks, some browsers (specifically, Internet Explorer 6 and 7 and possibly others) automatically decode content at certain locations within the Document Object Model (DOM) prior to passing it to the JavaScript interpreter. To reflect this danger, the rulepacks no longer treat URL encoding routines as sufficient to protect against Cross-Site Scripting. Data values that are URL encoded and subsequently output will cause Fortify to report Cross-Site Scripting: Poor Validation vulnerabilities.
+
+3. A number of modern web frameworks provide mechanisms for performing validation of user input. Struts and Struts 2 are among them. To highlight the unvalidated sources of input, the rulepacks dynamically re-prioritize the issues reported by HP Fortify Static Code Analyzer by lowering their probability of exploit and providing pointers to the supporting evidence whenever the framework validation mechanism is in use. We refer to this feature as Context-Sensitive Ranking. To further assist the HP Fortify user with the auditing process, the Fortify Security Research Group makes available the Data Validation project template that groups the issues into folders based on the validation mechanism applied to their source of input.
+
+4. Fortify RTA adds protection against this category.</Value>
+                            </MetaInfo>
+                            <AttributeValue>
+<Name>&lt;Unaudited&gt;</Name>
+<Count>11</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Not an Issue</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Reliability Issue</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Bad Practice</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Suspicious</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Exploitable</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                        </MajorAttributeSummary>
+                        <Issue ruleID="798E4513-03B3-4252-A644-FBA596AEFB2B" iid="3537BADF0C3B04814C45C5F1EFA8E9AA">
+                            <Category>Cross-Site Scripting: Reflected</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doPost() in CustomConnectorServlet.java sends unvalidated data to a web browser on line 307, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>CustomConnectorServlet.java</FileName>
+<FilePath>fredck/FCKeditor/connector/CustomConnectorServlet.java</FilePath>
+<LineStart>307</LineStart>
+<Snippet>		
+		out.println(&quot;&lt;script type=\&quot;text/javascript\&quot;&gt;&quot;);
+		out.println(&quot;window.parent.frames['frmUpload'].OnUploadCompleted(&quot;+retVal+&quot;,'&quot;+newName+&quot;');&quot;);
+		out.println(&quot;&lt;/script&gt;&quot;);
+		out.flush();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>CustomConnectorServlet.java</FileName>
+<FilePath>fredck/FCKeditor/connector/CustomConnectorServlet.java</FilePath>
+<LineStart>271</LineStart>
+<Snippet>			DiskFileUpload upload = new DiskFileUpload();
+			try {
+				List items = upload.parseRequest(request);
+				
+				Map fields=new HashMap();</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="5B9CE105-7C9E-402F-A6B5-3BB9EACDEE95" iid="C36F3338821522575E6A3684B36E4EDC">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method performAction() in SecureImageProvider.java sends unvalidated data to a web browser on line 71, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SecureImageProvider.java</FileName>
+<FilePath>jada/service/SecureImageProvider.java</FilePath>
+<LineStart>71</LineStart>
+<Snippet>            response.setContentLength(data.length);
+            OutputStream outputStream = response.getOutputStream();
+            outputStream.write(data);
+            outputStream.flush();
+        }</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ContentImageDAO.java</FileName>
+<FilePath>jada/dao/ContentImageDAO.java</FilePath>
+<LineStart>38</LineStart>
+<Snippet>	public static ContentImage load(Long imageId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		ContentImage contentimage = (ContentImage) session.get(ContentImage.class, imageId);
+		return contentimage;
+	}</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="5B9CE105-7C9E-402F-A6B5-3BB9EACDEE95" iid="9528B50114AE5E421A4D3F442C7C7F73">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method performAction() in SecureImageProvider.java sends unvalidated data to a web browser on line 71, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SecureImageProvider.java</FileName>
+<FilePath>jada/service/SecureImageProvider.java</FilePath>
+<LineStart>71</LineStart>
+<Snippet>            response.setContentLength(data.length);
+            OutputStream outputStream = response.getOutputStream();
+            outputStream.write(data);
+            outputStream.flush();
+        }</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SiteDAO.java</FileName>
+<FilePath>jada/dao/SiteDAO.java</FilePath>
+<LineStart>50</LineStart>
+<Snippet>	public static Site load(String siteId) throws Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Site site = (Site) session.get(Site.class, siteId);
+		return site;
+	}</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="0BCF2BFC-1A1D-4156-8A58-FEFB307724AA" iid="01C4E131EC3749E423BA6663A3AD004C">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doPost() in SimpleUploaderServlet.java sends unvalidated data to a web browser on line 144, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SimpleUploaderServlet.java</FileName>
+<FilePath>fredck/FCKeditor/uploader/SimpleUploaderServlet.java</FilePath>
+<LineStart>144</LineStart>
+<Snippet>	        }
+	        out.println(&quot;&lt;script type=\&quot;text/javascript\&quot;&gt;&quot;);
+	        out.println(&quot;window.parent.OnUploadCompleted(&quot; + retVal + &quot;,'&quot; + fileUrl + &quot;','&quot; + newName + &quot;','&quot; + errorMessage + &quot;');&quot;);
+	        out.println(&quot;&lt;/script&gt;&quot;);
+	        out.flush();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>AdminBean.java</FileName>
+<FilePath>jada/admin/AdminBean.java</FilePath>
+<LineStart>74</LineStart>
+<Snippet>	public Site getSite() throws Exception {
+		Session session = HibernateConnection.getInstance().getCurrentSession();
+		Site site = (Site) session.get(Site.class, siteId);
+		if (site == null) {
+			site = (Site) session.get(Site.class, Constants.SITE_DEFAULT);</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="5B9CE105-7C9E-402F-A6B5-3BB9EACDEE95" iid="787DE16C3FA2A5D40691B5E66B0A3137">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method performAction() in SecureImageProvider.java sends unvalidated data to a web browser on line 71, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SecureImageProvider.java</FileName>
+<FilePath>jada/service/SecureImageProvider.java</FilePath>
+<LineStart>71</LineStart>
+<Snippet>            response.setContentLength(data.length);
+            OutputStream outputStream = response.getOutputStream();
+            outputStream.write(data);
+            outputStream.flush();
+        }</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ItemImageDAO.java</FileName>
+<FilePath>jada/dao/ItemImageDAO.java</FilePath>
+<LineStart>38</LineStart>
+<Snippet>	public static ItemImage load(Long imageId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		ItemImage itemimage = (ItemImage) session.get(ItemImage.class, imageId);
+		return itemimage;
+	}</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="5B9CE105-7C9E-402F-A6B5-3BB9EACDEE95" iid="FD0BF4DEEE9DA72AA244BD0092F38609">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method performAction() in ImageProvider.java sends unvalidated data to a web browser on line 58, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ImageProvider.java</FileName>
+<FilePath>jada/service/ImageProvider.java</FilePath>
+<LineStart>58</LineStart>
+<Snippet>            response.setContentLength(data.length);
+            OutputStream outputStream = response.getOutputStream();
+            outputStream.write(data);
+            outputStream.flush();
+        }</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SiteDAO.java</FileName>
+<FilePath>jada/dao/SiteDAO.java</FilePath>
+<LineStart>50</LineStart>
+<Snippet>	public static Site load(String siteId) throws Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		Site site = (Site) session.get(Site.class, siteId);
+		return site;
+	}</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="5B9CE105-7C9E-402F-A6B5-3BB9EACDEE95" iid="051429509F9B8A9805A27ADEEF4BC4A1">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method performAction() in ImageProvider.java sends unvalidated data to a web browser on line 58, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ImageProvider.java</FileName>
+<FilePath>jada/service/ImageProvider.java</FilePath>
+<LineStart>58</LineStart>
+<Snippet>            response.setContentLength(data.length);
+            OutputStream outputStream = response.getOutputStream();
+            outputStream.write(data);
+            outputStream.flush();
+        }</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ItemImageDAO.java</FileName>
+<FilePath>jada/dao/ItemImageDAO.java</FilePath>
+<LineStart>38</LineStart>
+<Snippet>	public static ItemImage load(Long imageId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		ItemImage itemimage = (ItemImage) session.get(ItemImage.class, imageId);
+		return itemimage;
+	}</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="5B9CE105-7C9E-402F-A6B5-3BB9EACDEE95" iid="83ED8A69EFEFA02790E1DF7BED08242D">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method performAction() in ImageProvider.java sends unvalidated data to a web browser on line 58, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>ImageProvider.java</FileName>
+<FilePath>jada/service/ImageProvider.java</FilePath>
+<LineStart>58</LineStart>
+<Snippet>            response.setContentLength(data.length);
+            OutputStream outputStream = response.getOutputStream();
+            outputStream.write(data);
+            outputStream.flush();
+        }</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>ContentImageDAO.java</FileName>
+<FilePath>jada/dao/ContentImageDAO.java</FilePath>
+<LineStart>38</LineStart>
+<Snippet>	public static ContentImage load(Long imageId) throws SecurityException, Exception {
+    	Session session = HibernateConnection.getInstance().getCurrentSession();
+		ContentImage contentimage = (ContentImage) session.get(ContentImage.class, imageId);
+		return contentimage;
+	}</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="0BCF2BFC-1A1D-4156-8A58-FEFB307724AA" iid="5F3B9BB2D6B346682DBE5D0F7839C030">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doPost() in SimpleUploaderServlet.java sends unvalidated data to a web browser on line 144, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SimpleUploaderServlet.java</FileName>
+<FilePath>fredck/FCKeditor/uploader/SimpleUploaderServlet.java</FilePath>
+<LineStart>144</LineStart>
+<Snippet>	        }
+	        out.println(&quot;&lt;script type=\&quot;text/javascript\&quot;&gt;&quot;);
+	        out.println(&quot;window.parent.OnUploadCompleted(&quot; + retVal + &quot;,'&quot; + fileUrl + &quot;','&quot; + newName + &quot;','&quot; + errorMessage + &quot;');&quot;);
+	        out.println(&quot;&lt;/script&gt;&quot;);
+	        out.flush();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>AdminBean.java</FileName>
+<FilePath>jada/admin/AdminBean.java</FilePath>
+<LineStart>76</LineStart>
+<Snippet>		Site site = (Site) session.get(Site.class, siteId);
+		if (site == null) {
+			site = (Site) session.get(Site.class, Constants.SITE_DEFAULT);
+		}
+		return site;</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="798E4513-03B3-4252-A644-FBA596AEFB2B" iid="64A9AB5E5B18E467E4DE811DADD2CD48">
+                            <Category>Cross-Site Scripting: Reflected</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doPost() in SimpleUploaderServlet.java sends unvalidated data to a web browser on line 144, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SimpleUploaderServlet.java</FileName>
+<FilePath>fredck/FCKeditor/uploader/SimpleUploaderServlet.java</FilePath>
+<LineStart>144</LineStart>
+<Snippet>	        }
+	        out.println(&quot;&lt;script type=\&quot;text/javascript\&quot;&gt;&quot;);
+	        out.println(&quot;window.parent.OnUploadCompleted(&quot; + retVal + &quot;,'&quot; + fileUrl + &quot;','&quot; + newName + &quot;','&quot; + errorMessage + &quot;');&quot;);
+	        out.println(&quot;&lt;/script&gt;&quot;);
+	        out.flush();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SimpleUploaderServlet.java</FileName>
+<FilePath>fredck/FCKeditor/uploader/SimpleUploaderServlet.java</FilePath>
+<LineStart>71</LineStart>
+<Snippet>	        response.setHeader(&quot;Cache-Control&quot;, &quot;no-cache&quot;);
+	        PrintWriter out = response.getWriter();
+	        String typeStr = request.getParameter(&quot;Type&quot;);
+	        String currentPath = null;
+        	currentPath = this.getBaseDir(request) + typeStr;</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="798E4513-03B3-4252-A644-FBA596AEFB2B" iid="BED83E28B8BD514B963BCBA94559E192">
+                            <Category>Cross-Site Scripting: Reflected</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method doPost() in SimpleUploaderServlet.java sends unvalidated data to a web browser on line 144, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SimpleUploaderServlet.java</FileName>
+<FilePath>fredck/FCKeditor/uploader/SimpleUploaderServlet.java</FilePath>
+<LineStart>144</LineStart>
+<Snippet>	        }
+	        out.println(&quot;&lt;script type=\&quot;text/javascript\&quot;&gt;&quot;);
+	        out.println(&quot;window.parent.OnUploadCompleted(&quot; + retVal + &quot;,'&quot; + fileUrl + &quot;','&quot; + newName + &quot;','&quot; + errorMessage + &quot;');&quot;);
+	        out.println(&quot;&lt;/script&gt;&quot;);
+	        out.flush();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SimpleUploaderServlet.java</FileName>
+<FilePath>fredck/FCKeditor/uploader/SimpleUploaderServlet.java</FilePath>
+<LineStart>93</LineStart>
+<Snippet>	            try
+	            {
+	                List items = upload.parseRequest(request);
+	                Map fields = new HashMap();
+	                for(Iterator iter = items.iterator(); iter.hasNext();)</Snippet>
+                            </Source>
+                        </Issue>
+                    </GroupingSection>
+                </Chart>
+            </IssueListing>
+        </SubSection>
+    </ReportSection>
+</ReportDefinition>

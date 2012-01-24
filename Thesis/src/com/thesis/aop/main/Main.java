@@ -14,7 +14,7 @@ public class Main {
 		// TODO Auto-generated method stub
 		System.out.println("Hello");
 		DataFileParser parser = new DataFileParser();
-		parser.ParseFile("jada_report.xml");
+		parser.ParseFile("jada_java2.xml");
 		FunctionsParser functionsParser = new FunctionsParser();
 		functionsParser.ParseFile("xssfunctions.xml");
 		
