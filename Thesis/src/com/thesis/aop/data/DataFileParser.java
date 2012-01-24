@@ -12,6 +12,8 @@ import org.xml.sax.helpers.DefaultHandler;
 public class DataFileParser {
 	private String fileName;
 	private ArrayList<Issue> issues = new ArrayList<Issue>();
+	private ArrayList<Issue> xssIssues = new ArrayList<Issue>();
+	private ArrayList<Issue> sqlInjectionIssues = new ArrayList<Issue>();
 	
 	public DataFileParser(){}
 	
@@ -87,10 +89,18 @@ public class DataFileParser {
 
 					if (qName.equalsIgnoreCase("ISSUE")) {
 						issues.add(tempIssue);
+						addIssueToList(tempIssue);
 						newIssue = false;
 					}
 					if (qName.equalsIgnoreCase("SOURCE")) {
 						issues.add(tempSourceIssue);
+						tempSourceIssue.setAbstractDefn("SOURCE NODE - NO ABSTRACT AVAILABLE");
+						tempSourceIssue.setCategory(tempIssue.getCategory());
+						tempSourceIssue.setFolder(tempIssue.getFolder());
+						tempSourceIssue.setKingdom(tempIssue.getKingdom());
+						tempSourceIssue.setPriority(tempIssue.getPriority());
+
+						addIssueToList(tempSourceIssue);
 						newSourceIssue = false;
 					}
 					// System.out.println("End Element :" + qName);
@@ -102,32 +112,22 @@ public class DataFileParser {
 
 					if(newCategory){
 						tempIssue.setCategory(new String(ch, start, length));
-						if(newSourceIssue)
-							tempSourceIssue.setCategory(new String(ch, start, length));
 						newCategory = false;
 					}
 					if(newFolder){
 						tempIssue.setFolder(new String(ch, start, length));
-						if(newSourceIssue)
-							tempSourceIssue.setFolder(new String(ch, start, length));
 						newFolder = false;
 					}
 					if(newKingdom){
 						tempIssue.setKingdom(new String(ch, start, length));
-						if(newSourceIssue)
-							tempSourceIssue.setKingdom(new String(ch, start, length));
 						newKingdom = false;
 					}
 					if(newAbstract){
 						tempIssue.setAbstractDefn(new String(ch, start, length));
-						if(newSourceIssue)
-							tempSourceIssue.setAbstractDefn("SOURCE NODE - NO ABSTRACT AVAILABLE");
 						newAbstract = false;
 					}
 					if(newPriority){
 						tempIssue.setPriority(new String(ch, start, length));
-						if(newSourceIssue)
-							tempSourceIssue.setPriority(new String(ch, start, length));
 						newPriority = false;
 					}
 					if(newFileName){
@@ -171,6 +171,37 @@ public class DataFileParser {
 
 	public void setFileName(String fileName) {
 		this.fileName = fileName;
+	}
+	
+	public ArrayList<Issue> getIssues() {
+		return issues;
+	}
+
+	public void setIssues(ArrayList<Issue> issues) {
+		this.issues = issues;
+	}
+
+	public ArrayList<Issue> getXssIssues() {
+		return xssIssues;
+	}
+
+	public void setXssIssues(ArrayList<Issue> xssIssues) {
+		this.xssIssues = xssIssues;
+	}
+
+	public ArrayList<Issue> getSqlInjectionIssues() {
+		return sqlInjectionIssues;
+	}
+
+	public void setSqlInjectionIssues(ArrayList<Issue> sqlInjectionIssues) {
+		this.sqlInjectionIssues = sqlInjectionIssues;
+	}
+
+	public void addIssueToList(Issue i){
+		if(i.getCategory().indexOf("SQL Injection") != -1)
+			sqlInjectionIssues.add(i);
+		else if(i.getCategory().indexOf("Cross-Site Scripting") != -1)
+			xssIssues.add(i);
 	}
 	
 
