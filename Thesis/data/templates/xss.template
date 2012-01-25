@@ -1,6 +1,6 @@
-pointcut xss_<function_name>_<file_name>_<line_number>(<pointcut_param>) : 
-	execution(* * <function_name>(<function_params>)) && within(<file_name>);
+pointcut xss_<pointcut_name>(<pointcut_param>) : 
+	execution(* * <function_name>(<function_params>)) && (<within_string>) && args(<args_string>);
 	
-before(<pointcut_param>) : xss_<function_name>_<file_name>_<line_number>(<pointcut_vars>){
+before(<pointcut_param>) : xss_<pointcut_name>(<pointcut_vars>){
 	<advice_logic>
 }

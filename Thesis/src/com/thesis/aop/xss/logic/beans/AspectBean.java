@@ -7,23 +7,29 @@ public class AspectBean {
 	public String pointcutVars;
 	public String functionName;
 	public String functionParams;
-	public String fileName;
+	public String withinString;
 	public String adviceLogic;
+	public String lineNumberString;
+	public String argsString;
 	
 	public AspectBean(){}
 	
 	public AspectBean(String pointcutName, String pointcutParam,
 			String pointcutVars, String functionName, String functionParams,
-			String fileName, String adviceLogic) {
+			String withinString, String adviceLogic, String lineNumberString,
+			String argsString) {
 		super();
 		this.pointcutName = pointcutName;
 		this.pointcutParam = pointcutParam;
 		this.pointcutVars = pointcutVars;
 		this.functionName = functionName;
 		this.functionParams = functionParams;
-		this.fileName = fileName;
+		this.withinString = withinString;
 		this.adviceLogic = adviceLogic;
+		this.lineNumberString = lineNumberString;
+		this.argsString = argsString;
 	}
+
 	public String getPointcutName() {
 		return pointcutName;
 	}
@@ -54,11 +60,11 @@ public class AspectBean {
 	public void setFunctionParams(String functionParams) {
 		this.functionParams = functionParams;
 	}
-	public String getFileName() {
-		return fileName;
+	public String getWithinString() {
+		return withinString;
 	}
-	public void setFileName(String fileName) {
-		this.fileName = fileName;
+	public void setWithinString(String fileName) {
+		this.withinString = fileName;
 	}
 	public String getAdviceLogic() {
 		return adviceLogic;
@@ -66,6 +72,21 @@ public class AspectBean {
 	public void setAdviceLogic(String adviceLogic) {
 		this.adviceLogic = adviceLogic;
 	}
-	
+
+	public String getLineNumberString() {
+		return lineNumberString;
+	}
+
+	public void setLineNumberString(String lineNumberString) {
+		this.lineNumberString = lineNumberString;
+	}
+
+	public String getArgsString() {
+		return argsString;
+	}
+
+	public void setArgsString(String argsString) {
+		this.argsString = argsString;
+	}	
 	
 }

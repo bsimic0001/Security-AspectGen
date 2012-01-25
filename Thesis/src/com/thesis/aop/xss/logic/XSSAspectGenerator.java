@@ -22,26 +22,75 @@ public class XSSAspectGenerator {
 	
 	public XSSAspectGenerator(){}
 	
-	public XSSAspectGenerator(ArrayList<Function> functions){
+	public XSSAspectGenerator(ArrayList<Function> functions, ArrayList<Issue> xssIssues){
 		this.functions = functions;
+		this.xssIssues = xssIssues;
 	}
 
 	
 	public void generateAspect(){
-		for (Iterator iterator = xssIssues.iterator(); iterator.hasNext();) {
-			Issue i = (Issue) iterator.next();
-			generateAspectBean(i);
+		String withinString = createWithinString();
+		String lineNumberString = createLineNumberStringArray();
+		
+		for (Iterator iterator = functions.iterator(); iterator.hasNext();) {
+			Function f = (Function) iterator.next();
+			generateAspectBean(f, withinString, lineNumberString);
 		}
 		writeAspect();
 	}
 	
-	public void generateAspectBean(Issue i){
+	public String createWithinString(){
+		String withinString = "";
+		for (int i = 0; i < xssIssues.size(); i++) {
+			Issue tempIssue = xssIssues.get(i);
+			withinString += "within(" + tempIssue.getFilePath().replaceAll("/", ".") + ")";
+			if(i != 0 || i != xssIssues.size() -1)
+				withinString += " || ";
+		}
+		
+		return withinString;
+	}
+	
+	public String createLineNumberStringArray(){
+		String lineNumberString = "{";
+		for (int i = 0; i < xssIssues.size(); i++) {
+			Issue tempIssue = xssIssues.get(i);
+			lineNumberString += tempIssue.getLineStart();
+			if(i != 0 || i != xssIssues.size() -1)
+				lineNumberString += ", ";
+		}
+		lineNumberString += "}";
+		return lineNumberString;		
+	}
+	
+	public void generateAspectBean(Function f, String withinString, String lineNumberString){
 		//Code for generating individual beans
 		AspectBean newBean = new AspectBean();
-		newBean.setFileName(i.getFilePath().replaceAll("/", "."));
-		newBean.setFunctionName();
+		newBean.setPointcutName(f.getName());
+		newBean.setPointcutParam(createPointcutParam(f));
+		newBean.setFunctionName(f.getMethodName());
+		newBean.setFunctionParams(createFunctionParams(f));
+		newBean.setWithinString(withinString);
+		newBean.setLineNumberString(lineNumberString);
 
-		newBean.setAdviceLogic(generateLogicForAdvice(i));
+		newBean.setAdviceLogic(generateLogicForAdvice(f));
+	}
+	
+	public String createPointcutParam(Function f){
+		String pointcutParam = "";
+		pointcutParam += f.getInterceptParamType() + " param" + f.getInterceptParam();
+		return pointcutParam;
+	}
+	
+	public String createFunctionParams(Function f){
+		String functionParams = "";
+		for(int i = 0; i < f.getInterceptParam(); i++){
+			if(i == f.getInterceptParam() - 1)
+				functionParams += f.getInterceptParamType();
+			else
+				functionParams += ".., ";
+		}
+		return functionParams;
 	}
 	
 	
@@ -49,7 +98,7 @@ public class XSSAspectGenerator {
 		//Write aspect code to template file
 	}
 	
-	public String generateLogicForAdvice(Issue i){
-		return "Advice Logic " + i.getFileName() + " " + i.getLineStart();
+	public String generateLogicForAdvice(Function f){
+		return "Advice Logic " + f.getMethodName();
 	}
 }
