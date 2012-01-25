@@ -102,6 +102,14 @@ public class FunctionsParser {
 	public void setFileName(String fileName) {
 		this.fileName = fileName;
 	}
+
+	public ArrayList<Function> getFunctions() {
+		return functions;
+	}
+
+	public void setFunctions(ArrayList<Function> functions) {
+		this.functions = functions;
+	}
 	
 
 }

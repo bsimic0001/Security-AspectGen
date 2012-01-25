@@ -4,6 +4,8 @@ import java.io.IOException;
 
 import com.thesis.aop.data.DataFileParser;
 import com.thesis.aop.data.FunctionsParser;
+import com.thesis.aop.xss.logic.XSSAspectGenerator;
+
 import net.barenca.jastyle.JAStyleMain;
 public class Main {
 
@@ -18,6 +20,8 @@ public class Main {
 		System.out.println(parser.getSqlInjectionIssues().size());
 		FunctionsParser functionsParser = new FunctionsParser();
 		functionsParser.ParseFile("xssfunctions.xml");
+		
+		XSSAspectGenerator xssGenerator = new XSSAspectGenerator(functionsParser.getFunctions());
 		
 		String[] files = new String[1];
 		files[0] = System.getProperty("user.dir") + "/aspects/test.java";
