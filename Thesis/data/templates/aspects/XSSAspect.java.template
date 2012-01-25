@@ -1,0 +1,5 @@
+package com.aspects;
+
+public aspect XSSAspect{
+	<insert_code_here>
+}
