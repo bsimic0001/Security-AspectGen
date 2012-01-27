@@ -21,7 +21,8 @@ public class Main {
 		FunctionsParser functionsParser = new FunctionsParser();
 		functionsParser.ParseFile("xssfunctions.xml");
 		
-		XSSAspectGenerator xssGenerator = new XSSAspectGenerator(functionsParser.getFunctions());
+		XSSAspectGenerator xssGenerator = new XSSAspectGenerator(functionsParser.getFunctions(), parser.getXssIssues());
+		xssGenerator.generateAspect();
 		
 		String[] files = new String[1];
 		files[0] = System.getProperty("user.dir") + "/aspects/test.java";

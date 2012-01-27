@@ -21,12 +21,10 @@ public class DataFileParser {
 		this.fileName = fileName;
 		
 		try {
-
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			SAXParser saxParser = factory.newSAXParser();
 
 			DefaultHandler handler = new DefaultHandler() {
-
 				boolean newIssue = false;
 				boolean newCategory = false;
 				boolean newFolder = false;
