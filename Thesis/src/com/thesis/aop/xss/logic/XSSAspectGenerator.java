@@ -86,6 +86,7 @@ public class XSSAspectGenerator {
 		newBean.setFunctionParams(createFunctionParams(f));
 		newBean.setWithinString(withinString);
 		newBean.setArgsString(createArgsString(f));
+		newBean.setPointcutVars(createPointcutVarsString(f));
 		newBean.setLineNumberString(lineNumberString);
 		newBean.setAdviceLogic(generateLogicForAdvice(f));
 		aspectBeans.add(newBean);
@@ -108,15 +109,21 @@ public class XSSAspectGenerator {
 		}
 		return functionParams;
 	}
-	
-	public String createArgsString(Function f){
+
+	public String createArgsString(Function f) {
 		String args = "";
-		
-		
-		
+		args += "param";
+		args += f.getInterceptParam();
 		return args;
 	}
 
+	public String createPointcutVarsString(Function f){
+		String vars = "";
+		vars += "param";
+		vars += f.getInterceptParam();
+		return vars;
+	}
+	
 	public String generateLogicForAdvice(Function f) {
 		return "Advice Logic " + f.getMethodName();
 	}
@@ -140,8 +147,8 @@ public class XSSAspectGenerator {
 			while (null != ((str = aspectDataStream.readLine()))) {
 
 				String stringToReplace = "<insert_code_here>";
-				if(str.indexOf(stringToReplace) > -1) {
-			
+				if (str.indexOf(stringToReplace) > -1) {
+
 					str = str + "\n";
 					System.out.println("Writing aspect");
 					for (Iterator iterator = aspectBeans.iterator(); iterator
@@ -159,7 +166,8 @@ public class XSSAspectGenerator {
 		}
 	}
 
-	public void writePointcutAdvice(DataOutputStream aspectDataOutputStream, AspectBean aspectBean) {
+	public void writePointcutAdvice(DataOutputStream aspectDataOutputStream,
+			AspectBean aspectBean) {
 		FileInputStream templateInputStream;
 		try {
 			aspectDataOutputStream.writeBytes("//writing pointcut \n");
@@ -174,7 +182,8 @@ public class XSSAspectGenerator {
 
 				for (int i = 0; i < templateVariables.length; i++) {
 					String toReplace = templateVariables[i];
-					String replaceValue = getValueForTemplateVariable(templateVariables[i], aspectBean);
+					String replaceValue = getValueForTemplateVariable(
+							templateVariables[i], aspectBean);
 
 					int x = 0;
 					int y = 0;
@@ -189,10 +198,7 @@ public class XSSAspectGenerator {
 
 					if (str.indexOf("'',") != -1) {
 						continue;
-					} else {
-
-						
-					}
+					}			
 				}
 				aspectDataOutputStream.writeBytes("\n");
 				aspectDataOutputStream.writeBytes(str);
@@ -203,32 +209,26 @@ public class XSSAspectGenerator {
 			e.printStackTrace();
 		}
 	}
-	
-	public String getValueForTemplateVariable(String templateVariable, AspectBean aspectBean){
+
+	public String getValueForTemplateVariable(String templateVariable,
+			AspectBean aspectBean) {
 		String returnString = "";
 
-		if(templateVariable.equals(templateVariables[0])){
+		if (templateVariable.equals(templateVariables[0])) {
 			returnString = aspectBean.getPointcutName();
-		}
-		else if (templateVariable.equals(templateVariables[1])) {
+		} else if (templateVariable.equals(templateVariables[1])) {
 			returnString = aspectBean.getPointcutParam();
-		}
-		else if (templateVariable.equals(templateVariables[2])) {
+		} else if (templateVariable.equals(templateVariables[2])) {
 			returnString = aspectBean.getFunctionName();
-		}
-		else if (templateVariable.equals(templateVariables[3])) {
+		} else if (templateVariable.equals(templateVariables[3])) {
 			returnString = aspectBean.getFunctionParams();
-		}	
-		else if (templateVariable.equals(templateVariables[4])) {
+		} else if (templateVariable.equals(templateVariables[4])) {
 			returnString = aspectBean.getWithinString();
-		}
-		else if (templateVariable.equals(templateVariables[5])) {
+		} else if (templateVariable.equals(templateVariables[5])) {
 			returnString = aspectBean.getArgsString();
-		}
-		else if (templateVariable.equals(templateVariables[6])) {
+		} else if (templateVariable.equals(templateVariables[6])) {
 			returnString = aspectBean.getPointcutVars();
-		}		
-		else if (templateVariable.equals(templateVariables[7])) {
+		} else if (templateVariable.equals(templateVariables[7])) {
 			returnString = "advice logic";
 		}
 		return returnString;
