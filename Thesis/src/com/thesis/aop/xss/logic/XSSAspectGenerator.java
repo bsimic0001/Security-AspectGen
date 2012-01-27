@@ -55,10 +55,11 @@ public class XSSAspectGenerator {
 		String withinString = "";
 		for (int i = 0; i < xssIssues.size(); i++) {
 			Issue tempIssue = xssIssues.get(i);
+			tempIssue.setFilePath(tempIssue.getFilePath().replaceAll(".java", ""));
 			withinString += "within("
 					+ tempIssue.getFilePath().replaceAll("/", ".") + ")";
 			if (i != xssIssues.size() - 1)
-				withinString += " || ";
+				withinString += " || \n\t\t\t";
 		}
 
 		return withinString;
@@ -150,7 +151,7 @@ public class XSSAspectGenerator {
 				if (str.indexOf(stringToReplace) > -1) {
 
 					str = str + "\n";
-					System.out.println("Writing aspect");
+					System.out.println("Writing Aspect");
 					for (Iterator iterator = aspectBeans.iterator(); iterator
 							.hasNext();) {
 						AspectBean aspectBean = (AspectBean) iterator.next();
@@ -159,6 +160,9 @@ public class XSSAspectGenerator {
 
 					}
 					// aspectDataOutputStream.writeBytes(str);
+				}
+				else{
+					aspectDataOutputStream.writeBytes(str + " \n");
 				}
 			}
 		} catch (IOException ioe) {

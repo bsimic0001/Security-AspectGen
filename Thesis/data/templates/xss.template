@@ -1,6 +1,8 @@
-pointcut xss_<pointcut_name>(<pointcut_param>) : 
-	execution(* * <function_name>(<function_params>)) && (<within_string>) && args(<args_string>);
-	
-before(<pointcut_param>) : xss_<pointcut_name>(<pointcut_vars>){
-	<advice_logic>
-}
+		pointcut xss_<pointcut_name>(<pointcut_param>) : 
+			execution(* * <function_name>(<function_params>)) && 
+			(<within_string>) && 
+			args(<args_string>);
+			
+		before(<pointcut_param>) : xss_<pointcut_name>(<pointcut_vars>){
+			<advice_logic>
+		}

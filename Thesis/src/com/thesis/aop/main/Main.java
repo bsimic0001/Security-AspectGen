@@ -25,7 +25,7 @@ public class Main {
 		xssGenerator.generateAspect();
 		
 		String[] files = new String[1];
-		files[0] = System.getProperty("user.dir") + "/aspects/test.java";
+		files[0] = System.getProperty("user.dir") + "/data/templates/aspects/XSSAspect.aj";
 		try {
 			JAStyleMain.ParseFiles(files);
 		} catch (IOException e) {
