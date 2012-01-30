@@ -5,9 +5,15 @@ import org.owasp.esapi.codecs.OracleCodec;
 import org.owasp.esapi.errors.EncodingException;
 import org.owasp.esapi.errors.IntrusionException;
 import org.owasp.esapi.errors.ValidationException;
+
 public abstract class XSSValidation {
 
 	public static String REGEX_ALPHANUMERIC = "";
+	public static String REGEX_ALPHA = "";
+	public static String REGEX_NUMERIC = "";
+	public static String REGEX_EMAIL = "";
+	public static String REGEX_POSTAL_CODE = "";
+	public String REGEX_CUSTOM = "";
 	
 	public XSSValidation(){}
 	
@@ -45,7 +51,13 @@ public abstract class XSSValidation {
 		OracleCodec oracle = new OracleCodec();
 		return ESAPI.encoder().encodeForSQL(oracle, s);
 	}
-	
-	
+
+	public String getREGEX_CUSTOM() {
+		return REGEX_CUSTOM;
+	}
+
+	public void setREGEX_CUSTOM(String rEGEX_CUSTOM) {
+		REGEX_CUSTOM = rEGEX_CUSTOM;
+	}
 	
 }
