@@ -8,14 +8,19 @@ import org.owasp.esapi.errors.ValidationException;
 
 public abstract class XSSValidation {
 
-	public static String REGEX_ALPHANUMERIC = "";
-	public static String REGEX_ALPHA = "";
-	public static String REGEX_NUMERIC = "";
-	public static String REGEX_EMAIL = "";
-	public static String REGEX_POSTAL_CODE = "";
-	public String REGEX_CUSTOM = "";
+	public static String REGEX_ALPHANUMERIC = "AlphaNumberic";
+	public static String REGEX_ALPHA = "Alpha";
+	public static String REGEX_NUMERIC = "Numeric";
+	public static String REGEX_EMAIL = "Email";
+	public static String REGEX_ZIP_CODE = "ZipCode";
+	public static String REGEX_IP_ADDRESS = "IPAddress";
+	public static String REGEX_SSN = "SSN";
 	
 	public XSSValidation(){}
+	
+	public static String escapeCustomString(String s, String regex, int maxLength) throws ValidationException, IntrusionException{
+		return ESAPI.validator().getValidInput("CUSTOM_STRING_ESCAPE", s, regex, maxLength, true);
+	}
 	
 	public static String escapeJavaScript(String s){
 		return ESAPI.encoder().encodeForJavaScript(s);
@@ -51,13 +56,4 @@ public abstract class XSSValidation {
 		OracleCodec oracle = new OracleCodec();
 		return ESAPI.encoder().encodeForSQL(oracle, s);
 	}
-
-	public String getREGEX_CUSTOM() {
-		return REGEX_CUSTOM;
-	}
-
-	public void setREGEX_CUSTOM(String rEGEX_CUSTOM) {
-		REGEX_CUSTOM = rEGEX_CUSTOM;
-	}
-	
 }

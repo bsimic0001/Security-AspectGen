@@ -11,13 +11,15 @@ public class AspectBean {
 	public String adviceLogic;
 	public String lineNumberString;
 	public String argsString;
+	public String functionType;
 	
 	public AspectBean(){}
 	
+
 	public AspectBean(String pointcutName, String pointcutParam,
 			String pointcutVars, String functionName, String functionParams,
 			String withinString, String adviceLogic, String lineNumberString,
-			String argsString) {
+			String argsString, String functionType) {
 		super();
 		this.pointcutName = pointcutName;
 		this.pointcutParam = pointcutParam;
@@ -28,7 +30,9 @@ public class AspectBean {
 		this.adviceLogic = adviceLogic;
 		this.lineNumberString = lineNumberString;
 		this.argsString = argsString;
+		this.functionType = functionType;
 	}
+
 
 	public String getPointcutName() {
 		return pointcutName;
@@ -87,6 +91,16 @@ public class AspectBean {
 
 	public void setArgsString(String argsString) {
 		this.argsString = argsString;
+	}
+
+
+	public String getFunctionType() {
+		return functionType;
+	}
+
+
+	public void setFunctionType(String functionType) {
+		this.functionType = functionType;
 	}	
 	
 }

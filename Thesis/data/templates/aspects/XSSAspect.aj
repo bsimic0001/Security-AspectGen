@@ -1,6 +1,22 @@
 package com.aspects; 
  
 public aspect XSSAspect{ 
+	public HashMap<String, String> fixes = new HashMap<String, String>(); 
+	public XSSAspect{ 
+		fixes.put("SecureImageProvider.java_71", "URL ENCODING");
+		fixes.put("SimpleUploaderServlet.java_144", "ALPHA WHITELIST");
+		fixes.put("CustomConnectorServlet.java_271", "CSS ENCODING");
+		fixes.put("CustomConnectorServlet.java_307", "HTML ENCODING");
+		fixes.put("ItemImageDAO.java_38", "EMAIL WHITELIST");
+		fixes.put("SimpleUploaderServlet.java_93", "DO NOTHING");
+		fixes.put("SimpleUploaderServlet.java_71", "SSN WHITELIST");
+		fixes.put("AdminBean.java_76", "JAVASCRIPT ENCODING");
+		fixes.put("SiteDAO.java_50", "CREDIT CARD VALIDATION");
+		fixes.put("ImageProvider.java_58", "ZIP CODE WHITELIST");
+		fixes.put("AdminBean.java_74", "ALPHA-NUMERIC WHITELIST");
+		fixes.put("ContentImageDAO.java_38", "HTML ATTRIBUTE ENCODING");
+	} 
+	 
 //writing pointcut 
 
 		pointcut xss_writeFunction(String param1) : 
@@ -29,8 +45,10 @@ public aspect XSSAspect{
 			within(fredck.FCKeditor.uploader.SimpleUploaderServlet)) && 
 			args(param1);
 			
-		before(String param1) : xss_writeFunction(param1){
-			advice logic
+		Object around(String param1) : xss_writeFunction(param1){
+			System.out.println(advice logic);
+			proceed(param1);
+			return null;
 		}
 //writing pointcut 
 
@@ -60,8 +78,10 @@ public aspect XSSAspect{
 			within(fredck.FCKeditor.uploader.SimpleUploaderServlet)) && 
 			args(param1);
 			
-		before(byte[] param1) : xss_writeByteArrayFunction(param1){
-			advice logic
+		Object around(byte[] param1) : xss_writeByteArrayFunction(param1){
+			System.out.println(advice logic);
+			proceed(param1);
+			return null;
 		}
 //writing pointcut 
 
@@ -91,8 +111,10 @@ public aspect XSSAspect{
 			within(fredck.FCKeditor.uploader.SimpleUploaderServlet)) && 
 			args(param1);
 			
-		before(String param1) : xss_printFunction(param1){
-			advice logic
+		Object around(String param1) : xss_printFunction(param1){
+			System.out.println(advice logic);
+			proceed(param1);
+			return null;
 		}
 //writing pointcut 
 
@@ -122,8 +144,10 @@ public aspect XSSAspect{
 			within(fredck.FCKeditor.uploader.SimpleUploaderServlet)) && 
 			args(param1);
 			
-		before(String param1) : xss_printlnFunction(param1){
-			advice logic
+		Object around(String param1) : xss_printlnFunction(param1){
+			System.out.println(advice logic);
+			proceed(param1);
+			return null;
 		}
 //writing pointcut 
 
@@ -153,8 +177,10 @@ public aspect XSSAspect{
 			within(fredck.FCKeditor.uploader.SimpleUploaderServlet)) && 
 			args(param2);
 			
-		before(String param2) : xss_sendErrorFunction(param2){
-			advice logic
+		Object around(String param2) : xss_sendErrorFunction(param2){
+			System.out.println(advice logic);
+			proceed(param2);
+			return null;
 		}
 //writing pointcut 
 
@@ -184,8 +210,10 @@ public aspect XSSAspect{
 			within(fredck.FCKeditor.uploader.SimpleUploaderServlet)) && 
 			args(param1);
 			
-		before(String param1) : xss_getParameterFunction(param1){
-			advice logic
+		Object around(String param1) : xss_getParameterFunction(param1){
+			System.out.println(advice logic);
+			proceed(param1);
+			return null;
 		}
 //writing pointcut 
 
@@ -215,7 +243,9 @@ public aspect XSSAspect{
 			within(fredck.FCKeditor.uploader.SimpleUploaderServlet)) && 
 			args(param2);
 			
-		before(String param2) : xss_setAttributeFunction(param2){
-			advice logic
+		Object around(String param2) : xss_setAttributeFunction(param2){
+			System.out.println(advice logic);
+			proceed(param2);
+			return null;
 		}
 } 

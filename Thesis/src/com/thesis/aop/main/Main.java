@@ -11,8 +11,9 @@ public class Main {
 
 	/**
 	 * @param args
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
 		DataFileParser parser = new DataFileParser();
 		parser.ParseFile("jada_java2.xml");

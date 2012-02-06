@@ -3,6 +3,8 @@
 			(<within_string>) && 
 			args(<args_string>);
 			
-		before(<pointcut_param>) : xss_<pointcut_name>(<pointcut_vars>){
-			<advice_logic>
+		Object around(<pointcut_param>) : xss_<pointcut_name>(<pointcut_vars>){
+			System.out.println(<advice_logic>);
+			proceed(<advice_proceed>);
+			return null;
 		}

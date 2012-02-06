@@ -1,5 +1,10 @@
 package com.aspects;
 
 public aspect XSSAspect{
+	public HashMap<String, String> fixes = new HashMap<String, String>();
+	public XSSAspect{
+		<insert_fix_map>
+	}
+	
 	<insert_code_here>
 }
