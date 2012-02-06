@@ -4,7 +4,12 @@
 			args(<args_string>);
 			
 		Object around(<pointcut_param>) : xss_<pointcut_name>(<pointcut_vars>){
-			System.out.println(<advice_logic>);
-			proceed(<advice_proceed>);
+			if(fixes.containsKey(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+				thisJoinPoint.getSourceLocation().getLine()){
+				proceed(ThesisUtil.doXSSFix(<pointcut_vars>));	
+			}
+			else{
+				proceed(..);
+			}			
 			return null;
 		}

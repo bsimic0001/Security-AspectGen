@@ -79,7 +79,7 @@ public class XSSAspectGenerator {
 			Issue i = (Issue) iterator.next();
 			if(!map.containsKey(i.getFileName() + "_" + i.getLineStart())){
 				String advice = getAdviceForIssue(i);
-				//System.out.println(i.getIid() + "  -   " + i.getFileName() + "_" + i.getLineStart());
+				System.out.println(i.getIid() + " *********  -   " + i.getFileName() + "_" + i.getLineStart());
 				map.put(i.getFileName() + "_" + i.getLineStart(), advice);
 			}
 		}
