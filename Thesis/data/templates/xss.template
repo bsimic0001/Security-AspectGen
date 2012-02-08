@@ -6,7 +6,8 @@
 		Object around(<pointcut_param>) : xss_<pointcut_name>(<pointcut_vars>){
 			if(fixes.containsKey(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
 				thisJoinPoint.getSourceLocation().getLine()){
-				proceed(ThesisUtil.doXSSFix(<pointcut_vars>));	
+				proceed(ThesisUtil.doXSSFix(<pointcut_vars>, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+					thisJoinPoint.getSourceLocation().getLine())));	
 			}
 			else{
 				proceed(..);

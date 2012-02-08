@@ -1,9 +1,9 @@
 package com.aspects;
 import com.thesis.aop.util.ThesisUtil;
 
-public aspect XSSAspect{
+public aspect SQLInjectionAspect{
 	public HashMap<String, String> fixes = new HashMap<String, String>();
-	public XSSAspect{
+	public SQLInjectionAspect{
 		<insert_fix_map>
 	}
 	

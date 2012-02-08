@@ -1,0 +1,16 @@
+		pointcut sqlInjection_<pointcut_name>(<pointcut_param>) : 
+			execution(* * <function_name>(<function_params>)) && 
+			(<within_string>) && 
+			args(<args_string>);
+			
+		Object around(<pointcut_param>) : sqlInjection_<pointcut_name>(<pointcut_vars>){
+			if(fixes.containsKey(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+				thisJoinPoint.getSourceLocation().getLine()){
+				proceed(ThesisUtil.doSQLInjectionFix(<pointcut_vars>, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+					thisJoinPoint.getSourceLocation().getLine())));	
+			}
+			else{
+				proceed(..);
+			}			
+			return null;
+		}
