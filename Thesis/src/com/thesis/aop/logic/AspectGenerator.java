@@ -14,7 +14,7 @@ import java.util.Map;
 
 import com.thesis.aop.data.Function;
 import com.thesis.aop.data.Issue;
-import com.thesis.aop.xss.logic.beans.AspectBean;
+import com.thesis.aop.logic.beans.AspectBean;
 
 public class AspectGenerator {
 	

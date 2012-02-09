@@ -1,4 +1,4 @@
-package com.thesis.aop.xss.logic;
+package com.thesis.aop.sqlinjection.logic;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +12,7 @@ import com.thesis.aop.logic.AspectGenerator;
 import com.thesis.aop.logic.beans.AspectBean;
 import com.thesis.aop.util.ThesisUtil;
 
-public class XSSAspectGenerator extends AspectGenerator{
+public class SQLInjectionAspectGenerator extends AspectGenerator{
 
 	public String templateFileName;
 	public String outputFileName;
@@ -20,7 +20,7 @@ public class XSSAspectGenerator extends AspectGenerator{
 	public File templateFile;
 	public File outputFile;
 	public File pointcutTemplateFile;
-	public ArrayList<Issue> xssIssues = new ArrayList<Issue>();
+	public ArrayList<Issue> sqlInjectionIssues = new ArrayList<Issue>();
 	public ArrayList<AspectBean> aspectBeans = new ArrayList<AspectBean>();
 	public ArrayList<Function> functions;
 	public HashMap<String, String> adviceMap = new HashMap<String, String>();
@@ -31,28 +31,28 @@ public class XSSAspectGenerator extends AspectGenerator{
 	
 	public String[] xssFixOptions = ThesisUtil.xssFixOptions;
 
-	public XSSAspectGenerator() {
+	public SQLInjectionAspectGenerator() {
 	}
 
-	public XSSAspectGenerator(ArrayList<Function> functions,
-			ArrayList<Issue> xssIssues) {
+	public SQLInjectionAspectGenerator(ArrayList<Function> functions,
+			ArrayList<Issue> sqlInjectionIssues) {
 		this.functions = functions;
-		this.xssIssues = xssIssues;
+		this.sqlInjectionIssues = sqlInjectionIssues;
 	}
 
 	public void generateAspect() throws IOException {
-		String withinString = createWithinString(xssIssues);
-		String lineNumberString = createLineNumberStringArray(xssIssues);
+		String withinString = createWithinString(sqlInjectionIssues);
+		String lineNumberString = createLineNumberStringArray(sqlInjectionIssues);
 
-		adviceMap = createAdviceMap(xssIssues, xssFixOptions);
+		adviceMap = createAdviceMap(sqlInjectionIssues, xssFixOptions);
 		for (Iterator iterator = functions.iterator(); iterator.hasNext();) {
 			Function f = (Function) iterator.next();
 			aspectBeans.add(generateAspectBean(f, withinString, lineNumberString));
 		}
 		System.out.println(aspectBeans.size());
-		writeAspect("XSSAspect.java.template", 
-				"XSSAspect.aj", 
-				"xss.template", 
+		writeAspect("SQLInjectionAspect.java.template", 
+				"SQLInjectionAspect.aj", 
+				"sqlinjection.template", 
 				templateVariables, 
 				adviceMap,
 				aspectBeans);

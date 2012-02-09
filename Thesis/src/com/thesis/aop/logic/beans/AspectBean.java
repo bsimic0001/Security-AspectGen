@@ -1,4 +1,4 @@
-package com.thesis.aop.xss.logic.beans;
+package com.thesis.aop.logic.beans;
 
 public class AspectBean {
 
