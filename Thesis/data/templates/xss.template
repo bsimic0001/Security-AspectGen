@@ -1,4 +1,4 @@
-		pointcut xss_<pointcut_name>(<pointcut_param>) : 
+		pointcut xxss_<pointcut_name>(<pointcut_param>) : 
 			execution(* * <function_name>(<function_params>)) && 
 			(<within_string>) && 
 			args(<args_string>);
@@ -8,7 +8,7 @@
 				thisJoinPoint.getSourceLocation().getLine()){
 				proceed(ThesisUtil.doXSSFix(<pointcut_vars>, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
 					thisJoinPoint.getSourceLocation().getLine())));	
-			}
+			} 
 			else{
 				proceed(..);
 			}			
