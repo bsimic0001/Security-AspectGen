@@ -1,4 +1,4 @@
-		pointcut xxss_<pointcut_name>(<pointcut_param>) : 
+		pointcut xss_<pointcut_name>(<pointcut_param>) : 
 			execution(* * <function_name>(<function_params>)) && 
 			(<within_string>) && 
 			args(<args_string>);
