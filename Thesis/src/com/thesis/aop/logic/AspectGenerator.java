@@ -18,6 +18,8 @@ import com.thesis.aop.logic.beans.AspectBean;
 
 public class AspectGenerator {
 	
+	public boolean autoPilot = false;
+	
 	public HashMap<String, String> createAdviceMap(ArrayList<Issue> issues, String[] fixOptions) throws IOException{
 		HashMap<String, String> map = new HashMap<String, String>();
 		
@@ -51,8 +53,20 @@ public class AspectGenerator {
 			System.out.println(j + " - " + fixOptions[j]);
 		}
 		System.out.print("Enter Option: ");
-		String answer = br.readLine();
-		Integer answerInteger = new Integer(answer);
+		Integer answerInteger = 0;
+		
+		if(!autoPilot){
+			String answer = br.readLine();
+			answerInteger = new Integer(answer);
+		}
+		else{
+			answerInteger = 0 + (int)(Math.random() * (((fixOptions.length - 1) - 0) + 1));
+		}
+		
+		if(!autoPilot && answerInteger.intValue() == 99){
+			autoPilot = true;
+			answerInteger = 0 + (int)(Math.random() * (((fixOptions.length) - 1 - 0) + 1));
+		}
 		
 		advice = fixOptions[answerInteger.intValue()];
 		
@@ -206,7 +220,7 @@ public class AspectGenerator {
 		try {
 			templateInputStream = new FileInputStream(
 					System.getProperty("user.dir")
-							+ "/data/templates/xss.template");
+							+ "/data/templates/" + pointcutFileName);
 			DataInputStream templateDataStream = new DataInputStream(
 					templateInputStream);
 

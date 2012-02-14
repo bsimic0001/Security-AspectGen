@@ -3,7 +3,7 @@ import com.thesis.aop.util.ThesisUtil;
 
 public aspect SQLInjectionAspect{
 	public HashMap<String, String> fixes = new HashMap<String, String>();
-	public SQLInjectionAspect{
+	public SQLInjectionAspect(){
 		<insert_fix_map>
 	}
 	

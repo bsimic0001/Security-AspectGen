@@ -29,7 +29,7 @@ public class SQLInjectionAspectGenerator extends AspectGenerator{
 			"<within_string>", "<args_string>", "<pointcut_vars>",
 			"<advice_logic>", "<advice_proceed>", "<advice_type>" };
 	
-	public String[] xssFixOptions = ThesisUtil.xssFixOptions;
+	public String[] sqlInjectionFixOptions = ThesisUtil.xssFixOptions;
 
 	public SQLInjectionAspectGenerator() {
 	}
@@ -44,7 +44,7 @@ public class SQLInjectionAspectGenerator extends AspectGenerator{
 		String withinString = createWithinString(sqlInjectionIssues);
 		String lineNumberString = createLineNumberStringArray(sqlInjectionIssues);
 
-		adviceMap = createAdviceMap(sqlInjectionIssues, xssFixOptions);
+		adviceMap = createAdviceMap(sqlInjectionIssues, sqlInjectionFixOptions);
 		for (Iterator iterator = functions.iterator(); iterator.hasNext();) {
 			Function f = (Function) iterator.next();
 			aspectBeans.add(generateAspectBean(f, withinString, lineNumberString));

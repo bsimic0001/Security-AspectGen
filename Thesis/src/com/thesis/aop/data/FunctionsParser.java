@@ -15,6 +15,12 @@ public class FunctionsParser {
 	
 	public FunctionsParser(){}
 	
+	public void resetParser(){
+		fileName = null;
+		functions = null;
+		functions = new ArrayList<Function>();
+	}
+	
 	public void ParseFile(String fileName) {
 		this.fileName = fileName;
 		
