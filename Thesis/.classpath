@@ -4,5 +4,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/JAStyle.jar"/>
 	<classpathentry kind="lib" path="lib/esapi-2.0.2-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="lib/jsqlparser.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
