@@ -29,7 +29,7 @@ public class SQLInjectionAspectGenerator extends AspectGenerator{
 			"<within_string>", "<args_string>", "<pointcut_vars>",
 			"<advice_logic>", "<advice_proceed>", "<advice_type>" };
 	
-	public String[] sqlInjectionFixOptions = ThesisUtil.xssFixOptions;
+	public String[] sqlInjectionFixOptions = ThesisUtil.sqlInjectionFixOptions;
 
 	public SQLInjectionAspectGenerator() {
 	}

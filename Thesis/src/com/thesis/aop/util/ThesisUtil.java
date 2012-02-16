@@ -1,9 +1,12 @@
 package com.thesis.aop.util;
 
+import net.sf.jsqlparser.JSQLParserException;
+
 import org.owasp.esapi.errors.EncodingException;
 import org.owasp.esapi.errors.IntrusionException;
 import org.owasp.esapi.errors.ValidationException;
 
+import com.thesis.aop.esapi.SQLInjectionValidation;
 import com.thesis.aop.esapi.XSSValidation;
 
 public class ThesisUtil {
@@ -22,17 +25,24 @@ public class ThesisUtil {
 			"SSN-WHITELIST",
 			"DO-NOTHING"};
 	
-	public static String doXSSFix(String s, String solution) throws ValidationException, IntrusionException{
+	public static String[] sqlInjectionFixOptions = {"SQL-ENCODE-MYSQL", "SQL-ENCODE-ORACLE"};
+	
+	public static String doXSSFix(String s, String solution) throws ValidationException, IntrusionException, JSQLParserException{
 		String result = getSolution(s, solution);
 		return result;
 	}
 	
-	public static byte[] doXSSFix(byte[] s, String solution) throws ValidationException, IntrusionException{
+	public static byte[] doXSSFix(byte[] s, String solution) throws ValidationException, IntrusionException, JSQLParserException{
 		String result = getSolution(s.toString(), solution);
 		return result.getBytes();
 	}
 	
-	public static String getSolution(String s, String solution) throws ValidationException, IntrusionException{
+	public static String doSQLInjectionFix(String s, String solution) throws ValidationException, IntrusionException, JSQLParserException{
+		String result = getSolution(s, solution);
+		return result;
+	}
+	
+	public static String getSolution(String s, String solution) throws ValidationException, IntrusionException, JSQLParserException{
 		String result = s;
 		
 		if(solution.equals(xssFixOptions[0])){
@@ -83,6 +93,12 @@ public class ThesisUtil {
 		}
 		else if(solution.equals(xssFixOptions[11])){
 			result = XSSValidation.escapeCustomString(s, XSSValidation.REGEX_SSN, 12);
+		}
+		else if(solution.equals(sqlInjectionFixOptions[0])){
+			result = SQLInjectionValidation.escapeMySQL(s);
+		}
+		else if(solution.equals(sqlInjectionFixOptions[1])){
+			result = SQLInjectionValidation.escapeOracle(s);
 		}
 		
 		return result;

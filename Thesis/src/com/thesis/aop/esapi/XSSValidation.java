@@ -45,15 +45,4 @@ public abstract class XSSValidation {
 	public static String validateCreditCard(String s) throws ValidationException, IntrusionException{
 		return ESAPI.validator().getValidCreditCard("CREDIT_CARD_VALIDATION", s, false);
 	}
-
-	
-	public static String escapeMySQL(String s){
-		MySQLCodec mysql = new MySQLCodec(MySQLCodec.MYSQL_MODE);
-		return ESAPI.encoder().encodeForSQL(mysql, s);
-	}
-	
-	public static String escapeOracle(String s){
-		OracleCodec oracle = new OracleCodec();
-		return ESAPI.encoder().encodeForSQL(oracle, s);
-	}
 }

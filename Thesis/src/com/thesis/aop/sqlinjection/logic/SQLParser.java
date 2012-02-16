@@ -18,15 +18,13 @@ import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
 
-public class SQLParser {
+public abstract class SQLParser {
 
-	private String query;
 
-	public SQLParser(String query) {
-		this.query = query;
+	public SQLParser() {
 	}
 
-	public List<SimpleExpression> getQueryValues() throws JSQLParserException {
+	public static List<SimpleExpression> getQueryValues(String query) throws JSQLParserException {
 
 		CCJSqlParserManager pm = new CCJSqlParserManager();
 		Statement stmt = pm.parse(new StringReader(query));
@@ -36,11 +34,8 @@ public class SQLParser {
 		List<SimpleExpression> whereList = null;
 		
 		if (stmt instanceof Select) {
-			System.out.println("its a select statement");
-
 			Select s = (Select) stmt;
 			wh = new WhereItemsFinder(s);
-			// List<SimpleExpression> whereList = wh.getSelectionList();
 		}
 		if (stmt instanceof Insert) {
 			Insert i = (Insert) stmt;
