@@ -2,12 +2,15 @@ package com.thesis.aop.main;
 
 import java.io.IOException;
 
+import net.barenca.jastyle.JAStyleMain;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+
 import com.thesis.aop.data.DataFileParser;
 import com.thesis.aop.data.FunctionsParser;
 import com.thesis.aop.sqlinjection.logic.SQLInjectionAspectGenerator;
 import com.thesis.aop.xss.logic.XSSAspectGenerator;
-
-import net.barenca.jastyle.JAStyleMain;
 public class Main {
 
 	/**
@@ -15,11 +18,13 @@ public class Main {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException {
-		// TODO Auto-generated method stub
+		PropertyConfigurator.configure("log4j.properties");
+		Logger logger = Logger.getRootLogger();
+
 		DataFileParser parser = new DataFileParser();
 		parser.ParseFile("ofbiz_report.xml");
-		System.out.println(parser.getXssIssues().size());
-		System.out.println(parser.getSqlInjectionIssues().size());
+		logger.info(parser.getXssIssues().size());
+		logger.info(parser.getSqlInjectionIssues().size());
 		FunctionsParser functionsParser = new FunctionsParser();
 		functionsParser.ParseFile("xssfunctions.xml");
 		
@@ -33,6 +38,7 @@ public class Main {
 		
 		String[] files = new String[1];
 		files[0] = System.getProperty("user.dir") + "/data/templates/aspects/XSSAspect.aj";
+		logger.info("finished");
 		try {
 			JAStyleMain.ParseFiles(files);
 		} catch (IOException e) {

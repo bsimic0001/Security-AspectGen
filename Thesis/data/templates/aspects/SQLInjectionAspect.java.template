@@ -1,9 +1,21 @@
 package com.aspects;
 import com.thesis.aop.util.ThesisUtil;
+import com.thesis.aop.util.StopWatch;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
 public aspect SQLInjectionAspect{
 	public HashMap<String, String> fixes = new HashMap<String, String>();
+	Logger logger;
+	StopWatch watch;
+	
 	public SQLInjectionAspect(){
+		PropertyConfigurator.configure("log4j.properties");
+		logger = Logger.getRootLogger();
+		logger.info("SQL Injection Aspect Created");
+		watch = new StopWatch();
+		
 		<insert_fix_map>
 	}
 	
