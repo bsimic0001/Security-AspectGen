@@ -154,8 +154,9 @@ public class DataFileParser {
 			};
 
 			System.out.println(System.getProperty("user.dir"));
-			saxParser.parse(System.getProperty("user.dir")
-					+ "/data/" + fileName, handler);
+			saxParser.parse("./" + fileName, handler);
+			//saxParser.parse(System.getProperty("user.dir")
+			//		+ "/data/" + fileName, handler);
 			System.out.println(issues.size());
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -1,5 +1,6 @@
 package com.thesis.aop.data;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import javax.xml.parsers.SAXParser;
@@ -90,10 +91,11 @@ public class FunctionsParser {
 				}
 
 			};
-
+			
 			System.out.println(System.getProperty("user.dir"));
-			saxParser.parse(System.getProperty("user.dir")
-					+ "/data/functions/" + fileName, handler);
+			saxParser.parse(this.getClass().getResourceAsStream("/functions/" + fileName), handler);
+			//saxParser.parse(System.getProperty("user.dir")
+			//		+ "/data/functions/" + fileName, handler);
 			System.out.println(functions.size());
 		} catch (Exception e) {
 			e.printStackTrace();

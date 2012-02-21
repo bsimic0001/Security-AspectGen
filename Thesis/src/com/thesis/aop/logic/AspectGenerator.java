@@ -3,6 +3,7 @@ package com.thesis.aop.logic;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -165,14 +166,25 @@ public class AspectGenerator {
 			ArrayList<AspectBean> aspectBeans) {
 		try {
 			// Write aspect code to template file
-			FileInputStream aspectInputStream = new FileInputStream(
-					System.getProperty("user.dir")
-							+ "/data/templates/aspects/" + templateFileName);
+			
+			
+			//FileInputStream aspectInputStream = new FileInputStream(
+			//		System.getProperty("user.dir")
+			//				+ "/data/templates/aspects/" + templateFileName);
+			
 			DataInputStream aspectDataStream = new DataInputStream(
-					aspectInputStream);
-			FileOutputStream aspectOutputStream = new FileOutputStream(
-					System.getProperty("user.dir")
-							+ "/data/templates/aspects/" + resultFileName);
+					this.getClass().getResourceAsStream("/templates/aspects/" + templateFileName));
+			
+			//DataInputStream aspectDataStream = new DataInputStream(
+			//		aspectInputStream);
+			
+			File f = new File(System.getProperty("user.dir") + "\\" + resultFileName);
+			f.createNewFile();
+			
+			FileOutputStream aspectOutputStream = new FileOutputStream(f);
+			
+			//FileOutputStream aspectOutputStream = new FileOutputStream(
+			//		System.getProperty("user.dir") + resultFileName);
 			DataOutputStream aspectDataOutputStream = new DataOutputStream(
 					aspectOutputStream);
 
@@ -218,11 +230,11 @@ public class AspectGenerator {
 			AspectBean aspectBean, String pointcutFileName, String[] templateVariables) {
 		FileInputStream templateInputStream;
 		try {
-			templateInputStream = new FileInputStream(
-					System.getProperty("user.dir")
-							+ "/data/templates/" + pointcutFileName);
+			//templateInputStream = new FileInputStream(
+			//		System.getProperty("user.dir")
+			//				+ "/data/templates/" + pointcutFileName);
 			DataInputStream templateDataStream = new DataInputStream(
-					templateInputStream);
+					this.getClass().getResourceAsStream("/templates/" + pointcutFileName));
 
 			String str;
 			while (null != ((str = templateDataStream.readLine()))) {

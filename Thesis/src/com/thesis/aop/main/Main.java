@@ -1,6 +1,8 @@
 package com.thesis.aop.main;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 import net.barenca.jastyle.JAStyleMain;
 
@@ -18,11 +20,24 @@ public class Main {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException {
-		PropertyConfigurator.configure("log4j.properties");
+		
+		InputStream logStream = Main.class.getResourceAsStream("/properties/log4j.properties");
+		Properties logProperties = new Properties();
+		logProperties.load(logStream);
+		
+		PropertyConfigurator.configure(logProperties);
+		//PropertyConfigurator.configure("log4j.properties");
 		Logger logger = Logger.getRootLogger();
 
 		DataFileParser parser = new DataFileParser();
-		parser.ParseFile("ofbiz_report.xml");
+		
+		if(args[0].equals(null)){
+			parser.ParseFile("ofbiz_report.xml");
+		}
+		else{
+			parser.ParseFile(args[0]);
+		}
+		
 		logger.info(parser.getXssIssues().size());
 		logger.info(parser.getSqlInjectionIssues().size());
 		FunctionsParser functionsParser = new FunctionsParser();
@@ -36,15 +51,7 @@ public class Main {
 		SQLInjectionAspectGenerator sqlGenerator = new SQLInjectionAspectGenerator(functionsParser.getFunctions(), parser.getSqlInjectionIssues());
 		sqlGenerator.generateAspect();
 		
-		String[] files = new String[1];
-		files[0] = System.getProperty("user.dir") + "/data/templates/aspects/XSSAspect.aj";
 		logger.info("finished");
-		try {
-			JAStyleMain.ParseFiles(files);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 }
