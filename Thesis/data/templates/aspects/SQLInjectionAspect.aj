@@ -3,165 +3,172 @@ import com.thesis.aop.util.ThesisUtil;
 import com.thesis.aop.util.StopWatch; 
 import org.apache.log4j.Level; 
 import org.apache.log4j.Logger; 
+import org.apache.log4j.PropertyConfigurator; 
  
 public aspect SQLInjectionAspect{ 
 	public HashMap<String, String> fixes = new HashMap<String, String>(); 
-	Logger logger = Logger.getRootLogger(); 
+	Logger logger; 
+	StopWatch watch; 
+	 
 	public SQLInjectionAspect(){ 
+		PropertyConfigurator.configure("log4j.properties"); 
+		logger = Logger.getRootLogger(); 
 		logger.info("SQL Injection Aspect Created"); 
-		fixes.put("WebPosEvents.java_108", "SQL-ENCODE-ORACLE");
+		watch = new StopWatch(); 
+		 
+		fixes.put("WebPosEvents.java_108", "SQL-ENCODE-MYSQL");
 		fixes.put("LoginWorker.java_397", "SQL-ENCODE-MYSQL");
-		fixes.put("DatabaseUtil.java_1894", "SQL-ENCODE-MYSQL");
-		fixes.put("WebPosEvents.java_180", "SQL-ENCODE-ORACLE");
-		fixes.put("CheckOutEvents.java_384", "SQL-ENCODE-ORACLE");
+		fixes.put("DatabaseUtil.java_1894", "SQL-ENCODE-ORACLE");
+		fixes.put("WebPosEvents.java_180", "SQL-ENCODE-MYSQL");
+		fixes.put("CheckOutEvents.java_384", "SQL-ENCODE-MYSQL");
 		fixes.put("FrameImage.java_303", "SQL-ENCODE-MYSQL");
-		fixes.put("ProductEvents.java_805", "SQL-ENCODE-MYSQL");
+		fixes.put("ProductEvents.java_805", "SQL-ENCODE-ORACLE");
 		fixes.put("LayoutEvents.java_114", "SQL-ENCODE-ORACLE");
 		fixes.put("ProductEvents.java_804", "SQL-ENCODE-ORACLE");
-		fixes.put("FrameImage.java_403", "SQL-ENCODE-MYSQL");
+		fixes.put("FrameImage.java_403", "SQL-ENCODE-ORACLE");
 		fixes.put("FrameImage.java_402", "SQL-ENCODE-MYSQL");
-		fixes.put("CheckOutEvents.java_300", "SQL-ENCODE-ORACLE");
-		fixes.put("SequenceUtil.java_257", "SQL-ENCODE-ORACLE");
+		fixes.put("CheckOutEvents.java_300", "SQL-ENCODE-MYSQL");
+		fixes.put("SequenceUtil.java_257", "SQL-ENCODE-MYSQL");
 		fixes.put("DatabaseUtil.java_2044", "SQL-ENCODE-ORACLE");
 		fixes.put("CatalogUrlServlet.java_80", "SQL-ENCODE-ORACLE");
 		fixes.put("RomeEventHandler.java_70", "SQL-ENCODE-MYSQL");
-		fixes.put("ShoppingCartEvents.java_945", "SQL-ENCODE-ORACLE");
-		fixes.put("ServiceMultiEventHandler.java_308", "SQL-ENCODE-MYSQL");
+		fixes.put("ShoppingCartEvents.java_945", "SQL-ENCODE-MYSQL");
+		fixes.put("ServiceMultiEventHandler.java_308", "SQL-ENCODE-ORACLE");
 		fixes.put("ShipmentEvents.java_50", "SQL-ENCODE-MYSQL");
-		fixes.put("UrlServletHelper.java_122", "SQL-ENCODE-MYSQL");
+		fixes.put("UrlServletHelper.java_122", "SQL-ENCODE-ORACLE");
 		fixes.put("CommonEvents.java_179", "SQL-ENCODE-ORACLE");
-		fixes.put("ICalWorker.java_285", "SQL-ENCODE-ORACLE");
-		fixes.put("WebPosEvents.java_175", "SQL-ENCODE-MYSQL");
+		fixes.put("ICalWorker.java_285", "SQL-ENCODE-MYSQL");
+		fixes.put("WebPosEvents.java_175", "SQL-ENCODE-ORACLE");
 		fixes.put("ContextFilter.java_389", "SQL-ENCODE-MYSQL");
 		fixes.put("GenericWebEvent.java_183", "SQL-ENCODE-MYSQL");
-		fixes.put("DatabaseUtil.java_1820", "SQL-ENCODE-ORACLE");
+		fixes.put("DatabaseUtil.java_1820", "SQL-ENCODE-MYSQL");
 		fixes.put("CheckOutEvents.java_131", "SQL-ENCODE-ORACLE");
 		fixes.put("PayPalEvents.java_497", "SQL-ENCODE-MYSQL");
 		fixes.put("CompDocEvents.java_257", "SQL-ENCODE-ORACLE");
-		fixes.put("ServiceEventHandler.java_271", "SQL-ENCODE-MYSQL");
-		fixes.put("TrackingCodeEvents.java_374", "SQL-ENCODE-MYSQL");
-		fixes.put("LoginEvents.java_77", "SQL-ENCODE-ORACLE");
+		fixes.put("ServiceEventHandler.java_271", "SQL-ENCODE-ORACLE");
+		fixes.put("TrackingCodeEvents.java_374", "SQL-ENCODE-ORACLE");
+		fixes.put("LoginEvents.java_77", "SQL-ENCODE-MYSQL");
 		fixes.put("LoginEvents.java_76", "SQL-ENCODE-ORACLE");
-		fixes.put("ShoppingCartEvents.java_1535", "SQL-ENCODE-ORACLE");
-		fixes.put("TrackingCodeEvents.java_371", "SQL-ENCODE-MYSQL");
-		fixes.put("TrackingCodeEvents.java_372", "SQL-ENCODE-MYSQL");
-		fixes.put("FrameImage.java_261", "SQL-ENCODE-ORACLE");
+		fixes.put("ShoppingCartEvents.java_1535", "SQL-ENCODE-MYSQL");
+		fixes.put("TrackingCodeEvents.java_371", "SQL-ENCODE-ORACLE");
+		fixes.put("TrackingCodeEvents.java_372", "SQL-ENCODE-ORACLE");
+		fixes.put("FrameImage.java_261", "SQL-ENCODE-MYSQL");
 		fixes.put("DatabaseUtil.java_3182", "SQL-ENCODE-MYSQL");
-		fixes.put("FrameImage.java_262", "SQL-ENCODE-MYSQL");
-		fixes.put("UtilHttp.java_575", "SQL-ENCODE-ORACLE");
-		fixes.put("ShoppingCartEvents.java_1354", "SQL-ENCODE-MYSQL");
+		fixes.put("FrameImage.java_262", "SQL-ENCODE-ORACLE");
+		fixes.put("UtilHttp.java_575", "SQL-ENCODE-MYSQL");
+		fixes.put("ShoppingCartEvents.java_1354", "SQL-ENCODE-ORACLE");
 		fixes.put("ShipmentEvents.java_49", "SQL-ENCODE-MYSQL");
 		fixes.put("ShipmentEvents.java_48", "SQL-ENCODE-MYSQL");
 		fixes.put("FrameImage.java_267", "SQL-ENCODE-MYSQL");
-		fixes.put("FrameImage.java_268", "SQL-ENCODE-MYSQL");
+		fixes.put("FrameImage.java_268", "SQL-ENCODE-ORACLE");
 		fixes.put("UtilHttp.java_620", "SQL-ENCODE-MYSQL");
-		fixes.put("WebPosEvents.java_94", "SQL-ENCODE-ORACLE");
+		fixes.put("WebPosEvents.java_94", "SQL-ENCODE-MYSQL");
 		fixes.put("DatabaseUtil.java_3048", "SQL-ENCODE-ORACLE");
-		fixes.put("UtilHttp.java_559", "SQL-ENCODE-MYSQL");
+		fixes.put("UtilHttp.java_559", "SQL-ENCODE-ORACLE");
 		fixes.put("ShoppingCartEvents.java_1499", "SQL-ENCODE-ORACLE");
 		fixes.put("DatabaseUtil.java_2609", "SQL-ENCODE-MYSQL");
-		fixes.put("UtilHttp.java_184", "SQL-ENCODE-MYSQL");
+		fixes.put("UtilHttp.java_184", "SQL-ENCODE-ORACLE");
 		fixes.put("CursorStatement.java_62", "SQL-ENCODE-MYSQL");
-		fixes.put("LoginWorker.java_417", "SQL-ENCODE-ORACLE");
+		fixes.put("LoginWorker.java_417", "SQL-ENCODE-MYSQL");
 		fixes.put("AbstractOFBizAuthenticationHandler.java_129", "SQL-ENCODE-MYSQL");
 		fixes.put("SequenceUtil.java_241", "SQL-ENCODE-MYSQL");
 		fixes.put("ShoppingCartEvents.java_688", "SQL-ENCODE-ORACLE");
-		fixes.put("CheckOutEvents.java_466", "SQL-ENCODE-ORACLE");
+		fixes.put("CheckOutEvents.java_466", "SQL-ENCODE-MYSQL");
 		fixes.put("UtilHttp.java_234", "SQL-ENCODE-ORACLE");
 		fixes.put("UtilHttp.java_561", "SQL-ENCODE-MYSQL");
-		fixes.put("ShoppingCartEvents.java_1994", "SQL-ENCODE-ORACLE");
+		fixes.put("ShoppingCartEvents.java_1994", "SQL-ENCODE-MYSQL");
 		fixes.put("TaskEvents.java_75", "SQL-ENCODE-ORACLE");
-		fixes.put("ShoppingCartEvents.java_1527", "SQL-ENCODE-ORACLE");
-		fixes.put("RomeEventHandler.java_69", "SQL-ENCODE-ORACLE");
-		fixes.put("UtilHttp.java_563", "SQL-ENCODE-ORACLE");
-		fixes.put("ShoppingCartEvents.java_1388", "SQL-ENCODE-MYSQL");
+		fixes.put("ShoppingCartEvents.java_1527", "SQL-ENCODE-MYSQL");
+		fixes.put("RomeEventHandler.java_69", "SQL-ENCODE-MYSQL");
+		fixes.put("UtilHttp.java_563", "SQL-ENCODE-MYSQL");
+		fixes.put("ShoppingCartEvents.java_1388", "SQL-ENCODE-ORACLE");
 		fixes.put("UtilHttp.java_562", "SQL-ENCODE-MYSQL");
-		fixes.put("ShoppingListEvents.java_349", "SQL-ENCODE-MYSQL");
+		fixes.put("ShoppingListEvents.java_349", "SQL-ENCODE-ORACLE");
 		fixes.put("UtilHttp.java_564", "SQL-ENCODE-MYSQL");
-		fixes.put("FrameImage.java_347", "SQL-ENCODE-ORACLE");
-		fixes.put("FrameImage.java_348", "SQL-ENCODE-MYSQL");
+		fixes.put("FrameImage.java_347", "SQL-ENCODE-MYSQL");
+		fixes.put("FrameImage.java_348", "SQL-ENCODE-ORACLE");
 		fixes.put("DataEvents.java_136", "SQL-ENCODE-ORACLE");
-		fixes.put("UploadContentAndImage.java_287", "SQL-ENCODE-ORACLE");
-		fixes.put("UploadContentAndImage.java_505", "SQL-ENCODE-ORACLE");
+		fixes.put("UploadContentAndImage.java_287", "SQL-ENCODE-MYSQL");
+		fixes.put("UploadContentAndImage.java_505", "SQL-ENCODE-MYSQL");
 		fixes.put("WebShoppingCart.java_48", "SQL-ENCODE-ORACLE");
-		fixes.put("CommonEvents.java_231", "SQL-ENCODE-MYSQL");
-		fixes.put("FrameImage.java_312", "SQL-ENCODE-ORACLE");
-		fixes.put("DatabaseUtil.java_2699", "SQL-ENCODE-ORACLE");
-		fixes.put("ShoppingCartEvents.java_672", "SQL-ENCODE-ORACLE");
-		fixes.put("WebShoppingCart.java_49", "SQL-ENCODE-MYSQL");
+		fixes.put("CommonEvents.java_231", "SQL-ENCODE-ORACLE");
+		fixes.put("FrameImage.java_312", "SQL-ENCODE-MYSQL");
+		fixes.put("DatabaseUtil.java_2699", "SQL-ENCODE-MYSQL");
+		fixes.put("ShoppingCartEvents.java_672", "SQL-ENCODE-MYSQL");
+		fixes.put("WebShoppingCart.java_49", "SQL-ENCODE-ORACLE");
 		fixes.put("SequenceUtil.java_248", "SQL-ENCODE-ORACLE");
 		fixes.put("ContextFilter.java_467", "SQL-ENCODE-ORACLE");
 		fixes.put("UtilHttp.java_558", "SQL-ENCODE-ORACLE");
-		fixes.put("LayoutEvents.java_483", "SQL-ENCODE-MYSQL");
-		fixes.put("UtilHttp.java_556", "SQL-ENCODE-MYSQL");
-		fixes.put("CommonEvents.java_163", "SQL-ENCODE-ORACLE");
+		fixes.put("LayoutEvents.java_483", "SQL-ENCODE-ORACLE");
+		fixes.put("UtilHttp.java_556", "SQL-ENCODE-ORACLE");
+		fixes.put("CommonEvents.java_163", "SQL-ENCODE-MYSQL");
 		fixes.put("CoreEvents.java_516", "SQL-ENCODE-MYSQL");
-		fixes.put("CursorResultSet.java_38", "SQL-ENCODE-MYSQL");
+		fixes.put("CursorResultSet.java_38", "SQL-ENCODE-ORACLE");
 		fixes.put("GlEvents.java_86", "SQL-ENCODE-ORACLE");
 		fixes.put("DatabaseUtil.java_2085", "SQL-ENCODE-MYSQL");
-		fixes.put("SQLProcessor.java_363", "SQL-ENCODE-ORACLE");
+		fixes.put("SQLProcessor.java_363", "SQL-ENCODE-MYSQL");
 		fixes.put("CompDocEvents.java_104", "SQL-ENCODE-ORACLE");
 		fixes.put("UtilHttp.java_590", "SQL-ENCODE-MYSQL");
-		fixes.put("RequestHandler.java_119", "SQL-ENCODE-MYSQL");
+		fixes.put("RequestHandler.java_119", "SQL-ENCODE-ORACLE");
 		fixes.put("GenericWebEvent.java_135", "SQL-ENCODE-ORACLE");
-		fixes.put("UtilHttp.java_592", "SQL-ENCODE-MYSQL");
+		fixes.put("UtilHttp.java_592", "SQL-ENCODE-ORACLE");
 		fixes.put("CoreEvents.java_412", "SQL-ENCODE-MYSQL");
-		fixes.put("ShoppingListEvents.java_78", "SQL-ENCODE-ORACLE");
-		fixes.put("DatabaseUtil.java_2522", "SQL-ENCODE-ORACLE");
+		fixes.put("ShoppingListEvents.java_78", "SQL-ENCODE-MYSQL");
+		fixes.put("DatabaseUtil.java_2522", "SQL-ENCODE-MYSQL");
 		fixes.put("DatabaseUtil.java_2917", "SQL-ENCODE-MYSQL");
 		fixes.put("UtilHttp.java_127", "SQL-ENCODE-ORACLE");
-		fixes.put("ExpressCheckoutEvents.java_158", "SQL-ENCODE-ORACLE");
+		fixes.put("ExpressCheckoutEvents.java_158", "SQL-ENCODE-MYSQL");
 		fixes.put("ShoppingCartEvents.java_1327", "SQL-ENCODE-ORACLE");
 		fixes.put("OrderManagerEvents.java_222", "SQL-ENCODE-MYSQL");
 		fixes.put("UploadContentAndImage.java_182", "SQL-ENCODE-MYSQL");
-		fixes.put("DatabaseUtil.java_1922", "SQL-ENCODE-MYSQL");
+		fixes.put("DatabaseUtil.java_1922", "SQL-ENCODE-ORACLE");
 		fixes.put("CmsEvents.java_107", "SQL-ENCODE-MYSQL");
 		fixes.put("CursorResultSet.java_54", "SQL-ENCODE-MYSQL");
 		fixes.put("SequenceUtil.java_230", "SQL-ENCODE-MYSQL");
-		fixes.put("DataEvents.java_334", "SQL-ENCODE-ORACLE");
+		fixes.put("DataEvents.java_334", "SQL-ENCODE-MYSQL");
 		fixes.put("CursorResultSet.java_59", "SQL-ENCODE-MYSQL");
-		fixes.put("OrderEvents.java_58", "SQL-ENCODE-MYSQL");
+		fixes.put("OrderEvents.java_58", "SQL-ENCODE-ORACLE");
 		fixes.put("ContentManagementEvents.java_288", "SQL-ENCODE-ORACLE");
-		fixes.put("UploadContentAndImage.java_221", "SQL-ENCODE-ORACLE");
-		fixes.put("UrlServletHelper.java_125", "SQL-ENCODE-MYSQL");
+		fixes.put("UploadContentAndImage.java_221", "SQL-ENCODE-MYSQL");
+		fixes.put("UrlServletHelper.java_125", "SQL-ENCODE-ORACLE");
 		fixes.put("ShipmentEvents.java_95", "SQL-ENCODE-MYSQL");
-		fixes.put("CompDocEvents.java_119", "SQL-ENCODE-MYSQL");
-		fixes.put("UrlServletHelper.java_128", "SQL-ENCODE-ORACLE");
+		fixes.put("CompDocEvents.java_119", "SQL-ENCODE-ORACLE");
+		fixes.put("UrlServletHelper.java_128", "SQL-ENCODE-MYSQL");
 		fixes.put("ShoppingCartEvents.java_497", "SQL-ENCODE-MYSQL");
 		fixes.put("LayoutEvents.java_552", "SQL-ENCODE-ORACLE");
-		fixes.put("ServiceEventHandler.java_337", "SQL-ENCODE-MYSQL");
-		fixes.put("CommonEvents.java_141", "SQL-ENCODE-MYSQL");
-		fixes.put("UrlServletHelper.java_131", "SQL-ENCODE-MYSQL");
-		fixes.put("ShoppingCartEvents.java_693", "SQL-ENCODE-MYSQL");
+		fixes.put("ServiceEventHandler.java_337", "SQL-ENCODE-ORACLE");
+		fixes.put("CommonEvents.java_141", "SQL-ENCODE-ORACLE");
+		fixes.put("UrlServletHelper.java_131", "SQL-ENCODE-ORACLE");
+		fixes.put("ShoppingCartEvents.java_693", "SQL-ENCODE-ORACLE");
 		fixes.put("ContextFilter.java_485", "SQL-ENCODE-ORACLE");
 		fixes.put("LoginWorker.java_264", "SQL-ENCODE-ORACLE");
 		fixes.put("ProductionRunEvents.java_94", "SQL-ENCODE-ORACLE");
-		fixes.put("DataEvents.java_323", "SQL-ENCODE-MYSQL");
-		fixes.put("OrderManagerEvents.java_98", "SQL-ENCODE-MYSQL");
-		fixes.put("UploadContentAndImage.java_251", "SQL-ENCODE-MYSQL");
-		fixes.put("SQLProcessor.java_439", "SQL-ENCODE-ORACLE");
+		fixes.put("DataEvents.java_323", "SQL-ENCODE-ORACLE");
+		fixes.put("OrderManagerEvents.java_98", "SQL-ENCODE-ORACLE");
+		fixes.put("UploadContentAndImage.java_251", "SQL-ENCODE-ORACLE");
+		fixes.put("SQLProcessor.java_439", "SQL-ENCODE-MYSQL");
 		fixes.put("UtilObject.java_137", "SQL-ENCODE-MYSQL");
-		fixes.put("TrackingCodeEvents.java_93", "SQL-ENCODE-ORACLE");
-		fixes.put("WebPosEvents.java_58", "SQL-ENCODE-MYSQL");
-		fixes.put("OrderEvents.java_125", "SQL-ENCODE-ORACLE");
+		fixes.put("TrackingCodeEvents.java_93", "SQL-ENCODE-MYSQL");
+		fixes.put("WebPosEvents.java_58", "SQL-ENCODE-ORACLE");
+		fixes.put("OrderEvents.java_125", "SQL-ENCODE-MYSQL");
 		fixes.put("ICalWorker.java_305", "SQL-ENCODE-ORACLE");
 		fixes.put("DatabaseUtil.java_2443", "SQL-ENCODE-MYSQL");
-		fixes.put("SearchEvents.java_60", "SQL-ENCODE-MYSQL");
-		fixes.put("DatabaseUtil.java_2264", "SQL-ENCODE-ORACLE");
+		fixes.put("SearchEvents.java_60", "SQL-ENCODE-ORACLE");
+		fixes.put("DatabaseUtil.java_2264", "SQL-ENCODE-MYSQL");
 		fixes.put("FrameImage.java_409", "SQL-ENCODE-ORACLE");
 		fixes.put("WebPosEvents.java_113", "SQL-ENCODE-MYSQL");
 		fixes.put("ShoppingCartEvents.java_1469", "SQL-ENCODE-ORACLE");
-		fixes.put("RequestHandler.java_128", "SQL-ENCODE-MYSQL");
-		fixes.put("CompDocEvents.java_183", "SQL-ENCODE-MYSQL");
-		fixes.put("DatabaseUtil.java_1985", "SQL-ENCODE-ORACLE");
-		fixes.put("DatabaseUtil.java_3127", "SQL-ENCODE-ORACLE");
-		fixes.put("DatabaseUtil.java_2826", "SQL-ENCODE-MYSQL");
+		fixes.put("RequestHandler.java_128", "SQL-ENCODE-ORACLE");
+		fixes.put("CompDocEvents.java_183", "SQL-ENCODE-ORACLE");
+		fixes.put("DatabaseUtil.java_1985", "SQL-ENCODE-MYSQL");
+		fixes.put("DatabaseUtil.java_3127", "SQL-ENCODE-MYSQL");
+		fixes.put("DatabaseUtil.java_2826", "SQL-ENCODE-ORACLE");
 		fixes.put("EbayEvents.java_280", "SQL-ENCODE-MYSQL");
 		fixes.put("FindServices.java_503", "SQL-ENCODE-ORACLE");
 		fixes.put("DatabaseUtil.java_1771", "SQL-ENCODE-MYSQL");
-		fixes.put("SQLProcessor.java_366", "SQL-ENCODE-ORACLE");
-		fixes.put("GoogleBaseSearchEvents.java_122", "SQL-ENCODE-ORACLE");
-		fixes.put("UploadContentAndImage.java_150", "SQL-ENCODE-MYSQL");
+		fixes.put("SQLProcessor.java_366", "SQL-ENCODE-MYSQL");
+		fixes.put("GoogleBaseSearchEvents.java_122", "SQL-ENCODE-MYSQL");
+		fixes.put("UploadContentAndImage.java_150", "SQL-ENCODE-ORACLE");
 	} 
 	 
 
@@ -1637,6 +1644,7 @@ public aspect SQLInjectionAspect{
 			args(param1);
 			
 		Object around(String param1) : sqlInjection_createSQLQueryFunction(param1){
+			watch.start();
 			if(fixes.containsKey(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
 				thisJoinPoint.getSourceLocation().getLine()){
 				proceed(ThesisUtil.doSQLInjectionFix(param1, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
@@ -1644,7 +1652,10 @@ public aspect SQLInjectionAspect{
 			}
 			else{
 				proceed(..);
-			}			
+			}
+			watch.stop();
+			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+				thisJoinPoint.getSourceLocation().getLine() + "," + watch.getElapsedTime());			
 			return null;
 		}
 
@@ -3120,6 +3131,7 @@ public aspect SQLInjectionAspect{
 			args(param1);
 			
 		Object around(String param1) : sqlInjection_executeUpdateFunction(param1){
+			watch.start();
 			if(fixes.containsKey(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
 				thisJoinPoint.getSourceLocation().getLine()){
 				proceed(ThesisUtil.doSQLInjectionFix(param1, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
@@ -3127,7 +3139,10 @@ public aspect SQLInjectionAspect{
 			}
 			else{
 				proceed(..);
-			}			
+			}
+			watch.stop();
+			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+				thisJoinPoint.getSourceLocation().getLine() + "," + watch.getElapsedTime());			
 			return null;
 		}
 
@@ -4603,6 +4618,7 @@ public aspect SQLInjectionAspect{
 			args(param1);
 			
 		Object around(String param1) : sqlInjection_createQueryFunction(param1){
+			watch.start();
 			if(fixes.containsKey(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
 				thisJoinPoint.getSourceLocation().getLine()){
 				proceed(ThesisUtil.doSQLInjectionFix(param1, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
@@ -4610,7 +4626,10 @@ public aspect SQLInjectionAspect{
 			}
 			else{
 				proceed(..);
-			}			
+			}
+			watch.stop();
+			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+				thisJoinPoint.getSourceLocation().getLine() + "," + watch.getElapsedTime());			
 			return null;
 		}
 
@@ -6086,6 +6105,7 @@ public aspect SQLInjectionAspect{
 			args(param1);
 			
 		Object around(String param1) : sqlInjection_prepareStatementFunction(param1){
+			watch.start();
 			if(fixes.containsKey(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
 				thisJoinPoint.getSourceLocation().getLine()){
 				proceed(ThesisUtil.doSQLInjectionFix(param1, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
@@ -6093,7 +6113,10 @@ public aspect SQLInjectionAspect{
 			}
 			else{
 				proceed(..);
-			}			
+			}
+			watch.stop();
+			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+				thisJoinPoint.getSourceLocation().getLine() + "," + watch.getElapsedTime());			
 			return null;
 		}
 } 

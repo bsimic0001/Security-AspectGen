@@ -3,144 +3,150 @@ import com.thesis.aop.util.ThesisUtil;
 import com.thesis.aop.util.StopWatch; 
 import org.apache.log4j.Level; 
 import org.apache.log4j.Logger; 
+import org.apache.log4j.PropertyConfigurator; 
  
 public aspect XSSAspect{ 
 	public HashMap<String, String> fixes = new HashMap<String, String>(); 
-	Logger logger = Logger.getRootLogger(); 
+	Logger logger; 
+	StopWatch watch; 
 	 
 	public XSSAspect(){ 
+		PropertyConfigurator.configure("log4j.properties"); 
+		logger = Logger.getRootLogger(); 
 		logger.info("XSS Aspect Created!"); 
-		fixes.put("ContentWorker.java_194", "IP-ADDRESS-WHITELIST");
-		fixes.put("ControlServlet.java_269", "DO-NOTHING");
-		fixes.put("LoginWorker.java_397", "CSS-ENCODING");
-		fixes.put("ImageManagementServices.java_779", "JAVASCRIPT-ENCODING");
+		watch = new StopWatch(); 
+		 
+		fixes.put("ContentWorker.java_194", "ZIP-CODE-WHITELIST");
+		fixes.put("ControlServlet.java_269", "URL-ENCODING");
+		fixes.put("LoginWorker.java_397", "DO-NOTHING");
+		fixes.put("ImageManagementServices.java_779", "HTML-ATTRIBUTE-ENCODING");
 		fixes.put("CheckOutEvents.java_384", "URL-ENCODING");
-		fixes.put("ControlServlet.java_263", "EMAIL-WHITELIST");
-		fixes.put("FrameImage.java_303", "SSN-WHITELIST");
-		fixes.put("ControlServlet.java_261", "CREDIT-CARD-VALIDATION");
-		fixes.put("ContextFilter.java_235", "EMAIL-WHITELIST");
-		fixes.put("ICalConverter.java_491", "DO-NOTHING");
-		fixes.put("IndentingWriter.java_130", "SSN-WHITELIST");
-		fixes.put("ProductEvents.java_805", "ALPHA-NUMERIC-WHITELIST");
-		fixes.put("RenderContentAsText.java_244", "SSN-WHITELIST");
-		fixes.put("ProductEvents.java_804", "ALPHA-NUMERIC-WHITELIST");
-		fixes.put("FrameImage.java_403", "IP-ADDRESS-WHITELIST");
-		fixes.put("FrameImage.java_402", "IP-ADDRESS-WHITELIST");
-		fixes.put("CatalogUrlServlet.java_80", "EMAIL-WHITELIST");
-		fixes.put("ServiceMultiEventHandler.java_308", "URL-ENCODING");
-		fixes.put("ShipmentEvents.java_50", "EMAIL-WHITELIST");
-		fixes.put("ShoppingCartEvents.java_945", "IP-ADDRESS-WHITELIST");
-		fixes.put("CommonEvents.java_179", "JAVASCRIPT-ENCODING");
-		fixes.put("ICalWorker.java_285", "SSN-WHITELIST");
+		fixes.put("ControlServlet.java_263", "HTML-ENCODING");
+		fixes.put("FrameImage.java_303", "ZIP-CODE-WHITELIST");
+		fixes.put("ControlServlet.java_261", "EMAIL-WHITELIST");
+		fixes.put("ContextFilter.java_235", "DO-NOTHING");
+		fixes.put("ICalConverter.java_491", "IP-ADDRESS-WHITELIST");
+		fixes.put("IndentingWriter.java_130", "URL-ENCODING");
+		fixes.put("ProductEvents.java_805", "SSN-WHITELIST");
+		fixes.put("RenderContentAsText.java_244", "CSS-ENCODING");
+		fixes.put("ProductEvents.java_804", "JAVASCRIPT-ENCODING");
+		fixes.put("FrameImage.java_403", "ALPHA-NUMERIC-WHITELIST");
+		fixes.put("FrameImage.java_402", "URL-ENCODING");
+		fixes.put("CatalogUrlServlet.java_80", "HTML-ENCODING");
+		fixes.put("ServiceMultiEventHandler.java_308", "EMAIL-WHITELIST");
+		fixes.put("ShipmentEvents.java_50", "JAVASCRIPT-ENCODING");
+		fixes.put("ShoppingCartEvents.java_945", "CSS-ENCODING");
+		fixes.put("CommonEvents.java_179", "ALPHA-WHITELIST");
+		fixes.put("ICalWorker.java_285", "CSS-ENCODING");
 		fixes.put("GenericWebEvent.java_183", "CSS-ENCODING");
-		fixes.put("ICalWorker.java_337", "JAVASCRIPT-ENCODING");
-		fixes.put("CheckOutEvents.java_131", "DO-NOTHING");
-		fixes.put("PayPalEvents.java_497", "ALPHA-NUMERIC-WHITELIST");
-		fixes.put("CompDocEvents.java_257", "ALPHA-NUMERIC-WHITELIST");
-		fixes.put("TrackingCodeEvents.java_374", "EMAIL-WHITELIST");
-		fixes.put("CheckOutHelper.java_519", "DO-NOTHING");
-		fixes.put("LoginEvents.java_77", "EMAIL-WHITELIST");
-		fixes.put("ShoppingCartEvents.java_1535", "DO-NOTHING");
-		fixes.put("LoginEvents.java_76", "HTML-ENCODING");
-		fixes.put("TrackingCodeEvents.java_371", "HTML-ENCODING");
+		fixes.put("ICalWorker.java_337", "ALPHA-WHITELIST");
+		fixes.put("CheckOutEvents.java_131", "ALPHA-NUMERIC-WHITELIST");
+		fixes.put("PayPalEvents.java_497", "ALPHA-WHITELIST");
+		fixes.put("CompDocEvents.java_257", "HTML-ATTRIBUTE-ENCODING");
+		fixes.put("TrackingCodeEvents.java_374", "ZIP-CODE-WHITELIST");
+		fixes.put("CheckOutHelper.java_519", "ALPHA-WHITELIST");
+		fixes.put("LoginEvents.java_77", "HTML-ENCODING");
+		fixes.put("ShoppingCartEvents.java_1535", "CREDIT-CARD-VALIDATION");
+		fixes.put("LoginEvents.java_76", "SSN-WHITELIST");
+		fixes.put("TrackingCodeEvents.java_371", "CREDIT-CARD-VALIDATION");
 		fixes.put("TrackingCodeEvents.java_372", "URL-ENCODING");
-		fixes.put("RenderSubContentCacheTransform.java_202", "HTML-ENCODING");
-		fixes.put("FrameImage.java_261", "ALPHA-NUMERIC-WHITELIST");
-		fixes.put("UtilHttp.java_575", "HTML-ATTRIBUTE-ENCODING");
-		fixes.put("ShoppingCartEvents.java_1354", "DO-NOTHING");
-		fixes.put("FrameImage.java_262", "ALPHA-NUMERIC-WHITELIST");
-		fixes.put("ShipmentEvents.java_49", "DO-NOTHING");
-		fixes.put("RenderContentTransform.java_144", "HTML-ENCODING");
-		fixes.put("ShipmentEvents.java_48", "ALPHA-WHITELIST");
-		fixes.put("FrameImage.java_267", "JAVASCRIPT-ENCODING");
-		fixes.put("FrameImage.java_268", "SSN-WHITELIST");
-		fixes.put("WebPosEvents.java_94", "ZIP-CODE-WHITELIST");
-		fixes.put("XmlRpcEventHandler.java_103", "JAVASCRIPT-ENCODING");
-		fixes.put("IndentingWriter.java_115", "HTML-ENCODING");
-		fixes.put("ControlServlet.java_286", "ALPHA-WHITELIST");
-		fixes.put("UtilHttp.java_559", "ALPHA-NUMERIC-WHITELIST");
-		fixes.put("RenderContentTransform.java_129", "ALPHA-NUMERIC-WHITELIST");
-		fixes.put("ShoppingCartEvents.java_1499", "SSN-WHITELIST");
-		fixes.put("RenderContentAsText.java_224", "ALPHA-WHITELIST");
-		fixes.put("ServiceStreamHandler.java_81", "ALPHA-WHITELIST");
-		fixes.put("UtilHttp.java_184", "HTML-ATTRIBUTE-ENCODING");
-		fixes.put("HttpEngine.java_153", "ZIP-CODE-WHITELIST");
-		fixes.put("ControlServlet.java_284", "HTML-ATTRIBUTE-ENCODING");
-		fixes.put("AbstractOFBizAuthenticationHandler.java_129", "EMAIL-WHITELIST");
-		fixes.put("ShoppingCartEvents.java_688", "HTML-ATTRIBUTE-ENCODING");
-		fixes.put("UtilHttp.java_561", "DO-NOTHING");
-		fixes.put("ShoppingCartEvents.java_1994", "SSN-WHITELIST");
-		fixes.put("TaskEvents.java_75", "DO-NOTHING");
+		fixes.put("RenderSubContentCacheTransform.java_202", "JAVASCRIPT-ENCODING");
+		fixes.put("FrameImage.java_261", "HTML-ATTRIBUTE-ENCODING");
+		fixes.put("UtilHttp.java_575", "CSS-ENCODING");
+		fixes.put("ShoppingCartEvents.java_1354", "CSS-ENCODING");
+		fixes.put("FrameImage.java_262", "JAVASCRIPT-ENCODING");
+		fixes.put("ShipmentEvents.java_49", "IP-ADDRESS-WHITELIST");
+		fixes.put("RenderContentTransform.java_144", "CREDIT-CARD-VALIDATION");
+		fixes.put("ShipmentEvents.java_48", "EMAIL-WHITELIST");
+		fixes.put("FrameImage.java_267", "HTML-ATTRIBUTE-ENCODING");
+		fixes.put("FrameImage.java_268", "EMAIL-WHITELIST");
+		fixes.put("WebPosEvents.java_94", "IP-ADDRESS-WHITELIST");
+		fixes.put("XmlRpcEventHandler.java_103", "ZIP-CODE-WHITELIST");
+		fixes.put("IndentingWriter.java_115", "IP-ADDRESS-WHITELIST");
+		fixes.put("ControlServlet.java_286", "CSS-ENCODING");
+		fixes.put("UtilHttp.java_559", "HTML-ENCODING");
+		fixes.put("RenderContentTransform.java_129", "HTML-ATTRIBUTE-ENCODING");
+		fixes.put("ShoppingCartEvents.java_1499", "ZIP-CODE-WHITELIST");
+		fixes.put("RenderContentAsText.java_224", "JAVASCRIPT-ENCODING");
+		fixes.put("ServiceStreamHandler.java_81", "SSN-WHITELIST");
+		fixes.put("UtilHttp.java_184", "CSS-ENCODING");
+		fixes.put("HttpEngine.java_153", "IP-ADDRESS-WHITELIST");
+		fixes.put("ControlServlet.java_284", "ALPHA-WHITELIST");
+		fixes.put("AbstractOFBizAuthenticationHandler.java_129", "ZIP-CODE-WHITELIST");
+		fixes.put("ShoppingCartEvents.java_688", "DO-NOTHING");
+		fixes.put("UtilHttp.java_561", "SSN-WHITELIST");
+		fixes.put("ShoppingCartEvents.java_1994", "CSS-ENCODING");
+		fixes.put("TaskEvents.java_75", "HTML-ENCODING");
 		fixes.put("ShoppingCartEvents.java_1527", "CSS-ENCODING");
-		fixes.put("ShoppingCartEvents.java_1388", "ZIP-CODE-WHITELIST");
-		fixes.put("ShoppingListEvents.java_349", "ALPHA-WHITELIST");
-		fixes.put("UtilHttp.java_564", "HTML-ATTRIBUTE-ENCODING");
-		fixes.put("FrameImage.java_347", "ZIP-CODE-WHITELIST");
-		fixes.put("FrameImage.java_348", "ZIP-CODE-WHITELIST");
-		fixes.put("DataEvents.java_136", "URL-ENCODING");
-		fixes.put("IndentingWriter.java_124", "JAVASCRIPT-ENCODING");
-		fixes.put("UploadContentAndImage.java_287", "DO-NOTHING");
-		fixes.put("ContextFilter.java_263", "HTML-ENCODING");
-		fixes.put("UploadContentAndImage.java_505", "IP-ADDRESS-WHITELIST");
-		fixes.put("EntityField.java_249", "CREDIT-CARD-VALIDATION");
-		fixes.put("WebShoppingCart.java_48", "CREDIT-CARD-VALIDATION");
-		fixes.put("CommonEvents.java_231", "CSS-ENCODING");
-		fixes.put("FrameImage.java_312", "HTML-ATTRIBUTE-ENCODING");
-		fixes.put("EbayStoreOptions.java_273", "ALPHA-WHITELIST");
-		fixes.put("ServiceStreamHandler.java_110", "HTML-ATTRIBUTE-ENCODING");
-		fixes.put("WebShoppingCart.java_49", "CREDIT-CARD-VALIDATION");
-		fixes.put("ShoppingCartEvents.java_672", "JAVASCRIPT-ENCODING");
-		fixes.put("UtilHttp.java_558", "ZIP-CODE-WHITELIST");
-		fixes.put("LayoutEvents.java_483", "JAVASCRIPT-ENCODING");
+		fixes.put("ShoppingCartEvents.java_1388", "ALPHA-NUMERIC-WHITELIST");
+		fixes.put("ShoppingListEvents.java_349", "CSS-ENCODING");
+		fixes.put("UtilHttp.java_564", "JAVASCRIPT-ENCODING");
+		fixes.put("FrameImage.java_347", "DO-NOTHING");
+		fixes.put("FrameImage.java_348", "HTML-ATTRIBUTE-ENCODING");
+		fixes.put("DataEvents.java_136", "ALPHA-NUMERIC-WHITELIST");
+		fixes.put("IndentingWriter.java_124", "DO-NOTHING");
+		fixes.put("UploadContentAndImage.java_287", "SSN-WHITELIST");
+		fixes.put("ContextFilter.java_263", "ZIP-CODE-WHITELIST");
+		fixes.put("UploadContentAndImage.java_505", "SSN-WHITELIST");
+		fixes.put("EntityField.java_249", "ALPHA-WHITELIST");
+		fixes.put("WebShoppingCart.java_48", "URL-ENCODING");
+		fixes.put("CommonEvents.java_231", "ALPHA-NUMERIC-WHITELIST");
+		fixes.put("FrameImage.java_312", "URL-ENCODING");
+		fixes.put("EbayStoreOptions.java_273", "HTML-ATTRIBUTE-ENCODING");
+		fixes.put("ServiceStreamHandler.java_110", "EMAIL-WHITELIST");
+		fixes.put("WebShoppingCart.java_49", "ALPHA-NUMERIC-WHITELIST");
+		fixes.put("ShoppingCartEvents.java_672", "SSN-WHITELIST");
+		fixes.put("UtilHttp.java_558", "DO-NOTHING");
+		fixes.put("LayoutEvents.java_483", "DO-NOTHING");
 		fixes.put("CoreEvents.java_516", "HTML-ATTRIBUTE-ENCODING");
 		fixes.put("UtilHttp.java_1033", "JAVASCRIPT-ENCODING");
-		fixes.put("XmlRpcEventHandler.java_128", "URL-ENCODING");
-		fixes.put("CompDocEvents.java_104", "HTML-ATTRIBUTE-ENCODING");
-		fixes.put("GenericWebEvent.java_135", "IP-ADDRESS-WHITELIST");
-		fixes.put("CoreEvents.java_412", "CSS-ENCODING");
+		fixes.put("XmlRpcEventHandler.java_128", "HTML-ENCODING");
+		fixes.put("CompDocEvents.java_104", "ALPHA-NUMERIC-WHITELIST");
+		fixes.put("GenericWebEvent.java_135", "JAVASCRIPT-ENCODING");
+		fixes.put("CoreEvents.java_412", "EMAIL-WHITELIST");
 		fixes.put("IndentingWriter.java_58", "SSN-WHITELIST");
-		fixes.put("UtilHttp.java_127", "CREDIT-CARD-VALIDATION");
-		fixes.put("OfbizUrlTransform.java_218", "CREDIT-CARD-VALIDATION");
-		fixes.put("Section.java_98", "JAVASCRIPT-ENCODING");
-		fixes.put("ShoppingCartEvents.java_1327", "IP-ADDRESS-WHITELIST");
-		fixes.put("OrderManagerEvents.java_222", "ZIP-CODE-WHITELIST");
-		fixes.put("InputValue.java_134", "CREDIT-CARD-VALIDATION");
-		fixes.put("UploadContentAndImage.java_182", "URL-ENCODING");
-		fixes.put("CmsEvents.java_107", "ZIP-CODE-WHITELIST");
-		fixes.put("HttpEngine.java_187", "SSN-WHITELIST");
-		fixes.put("UrlTag.java_57", "IP-ADDRESS-WHITELIST");
-		fixes.put("OrderEvents.java_58", "CREDIT-CARD-VALIDATION");
+		fixes.put("UtilHttp.java_127", "EMAIL-WHITELIST");
+		fixes.put("OfbizUrlTransform.java_218", "DO-NOTHING");
+		fixes.put("Section.java_98", "EMAIL-WHITELIST");
+		fixes.put("ShoppingCartEvents.java_1327", "CREDIT-CARD-VALIDATION");
+		fixes.put("OrderManagerEvents.java_222", "SSN-WHITELIST");
+		fixes.put("InputValue.java_134", "EMAIL-WHITELIST");
+		fixes.put("UploadContentAndImage.java_182", "ALPHA-NUMERIC-WHITELIST");
+		fixes.put("CmsEvents.java_107", "JAVASCRIPT-ENCODING");
+		fixes.put("HttpEngine.java_187", "URL-ENCODING");
+		fixes.put("UrlTag.java_57", "CSS-ENCODING");
+		fixes.put("OrderEvents.java_58", "HTML-ATTRIBUTE-ENCODING");
 		fixes.put("UploadContentAndImage.java_221", "ZIP-CODE-WHITELIST");
-		fixes.put("ContentManagementEvents.java_288", "URL-ENCODING");
-		fixes.put("ShipmentEvents.java_95", "HTML-ENCODING");
-		fixes.put("CompDocEvents.java_119", "ZIP-CODE-WHITELIST");
+		fixes.put("ContentManagementEvents.java_288", "CSS-ENCODING");
+		fixes.put("ShipmentEvents.java_95", "SSN-WHITELIST");
+		fixes.put("CompDocEvents.java_119", "DO-NOTHING");
 		fixes.put("InputValue.java_143", "JAVASCRIPT-ENCODING");
-		fixes.put("OfbizUrlTransform.java_205", "EMAIL-WHITELIST");
-		fixes.put("InputValue.java_145", "ALPHA-NUMERIC-WHITELIST");
-		fixes.put("LayoutEvents.java_552", "ZIP-CODE-WHITELIST");
-		fixes.put("ServiceEventHandler.java_337", "DO-NOTHING");
-		fixes.put("ImageUrlServlet.java_113", "URL-ENCODING");
-		fixes.put("ShoppingCartEvents.java_693", "URL-ENCODING");
-		fixes.put("SOAPEventHandler.java_328", "JAVASCRIPT-ENCODING");
-		fixes.put("LoginWorker.java_264", "JAVASCRIPT-ENCODING");
-		fixes.put("SOAPEventHandler.java_136", "ALPHA-NUMERIC-WHITELIST");
-		fixes.put("ProductionRunEvents.java_94", "CSS-ENCODING");
-		fixes.put("OrderManagerEvents.java_98", "HTML-ENCODING");
+		fixes.put("OfbizUrlTransform.java_205", "ZIP-CODE-WHITELIST");
+		fixes.put("InputValue.java_145", "URL-ENCODING");
+		fixes.put("LayoutEvents.java_552", "HTML-ATTRIBUTE-ENCODING");
+		fixes.put("ServiceEventHandler.java_337", "EMAIL-WHITELIST");
+		fixes.put("ImageUrlServlet.java_113", "EMAIL-WHITELIST");
+		fixes.put("ShoppingCartEvents.java_693", "CSS-ENCODING");
+		fixes.put("SOAPEventHandler.java_328", "ALPHA-WHITELIST");
+		fixes.put("LoginWorker.java_264", "ZIP-CODE-WHITELIST");
+		fixes.put("SOAPEventHandler.java_136", "URL-ENCODING");
+		fixes.put("ProductionRunEvents.java_94", "URL-ENCODING");
+		fixes.put("OrderManagerEvents.java_98", "HTML-ATTRIBUTE-ENCODING");
 		fixes.put("UploadContentAndImage.java_251", "DO-NOTHING");
-		fixes.put("TrackingCodeEvents.java_93", "ALPHA-WHITELIST");
-		fixes.put("WebPosEvents.java_58", "HTML-ENCODING");
-		fixes.put("ImageUrlServlet.java_75", "CSS-ENCODING");
-		fixes.put("OrderEvents.java_125", "IP-ADDRESS-WHITELIST");
-		fixes.put("RenderSubContentAsText.java_204", "ALPHA-NUMERIC-WHITELIST");
-		fixes.put("RenderSubContentCacheTransform.java_275", "JAVASCRIPT-ENCODING");
-		fixes.put("SearchEvents.java_60", "EMAIL-WHITELIST");
-		fixes.put("FrameImage.java_409", "ALPHA-NUMERIC-WHITELIST");
-		fixes.put("ShoppingCartEvents.java_1469", "CREDIT-CARD-VALIDATION");
-		fixes.put("RequestHandler.java_128", "CSS-ENCODING");
-		fixes.put("CompDocEvents.java_183", "ALPHA-NUMERIC-WHITELIST");
-		fixes.put("Section.java_100", "ALPHA-WHITELIST");
-		fixes.put("GoogleBaseSearchEvents.java_122", "IP-ADDRESS-WHITELIST");
-		fixes.put("UploadContentAndImage.java_150", "ZIP-CODE-WHITELIST");
+		fixes.put("TrackingCodeEvents.java_93", "EMAIL-WHITELIST");
+		fixes.put("WebPosEvents.java_58", "DO-NOTHING");
+		fixes.put("ImageUrlServlet.java_75", "DO-NOTHING");
+		fixes.put("OrderEvents.java_125", "ALPHA-NUMERIC-WHITELIST");
+		fixes.put("RenderSubContentAsText.java_204", "JAVASCRIPT-ENCODING");
+		fixes.put("RenderSubContentCacheTransform.java_275", "SSN-WHITELIST");
+		fixes.put("SearchEvents.java_60", "JAVASCRIPT-ENCODING");
+		fixes.put("FrameImage.java_409", "URL-ENCODING");
+		fixes.put("ShoppingCartEvents.java_1469", "URL-ENCODING");
+		fixes.put("RequestHandler.java_128", "JAVASCRIPT-ENCODING");
+		fixes.put("CompDocEvents.java_183", "URL-ENCODING");
+		fixes.put("Section.java_100", "EMAIL-WHITELIST");
+		fixes.put("GoogleBaseSearchEvents.java_122", "HTML-ATTRIBUTE-ENCODING");
+		fixes.put("UploadContentAndImage.java_150", "ALPHA-NUMERIC-WHITELIST");
 	} 
 	 
 
@@ -1887,6 +1893,7 @@ public aspect XSSAspect{
 			args(param1);
 			
 		Object around(String param1) : xss_writeFunction(param1){
+			watch.start();
 			if(fixes.containsKey(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
 				thisJoinPoint.getSourceLocation().getLine()){
 				proceed(ThesisUtil.doXSSFix(param1, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
@@ -1894,7 +1901,11 @@ public aspect XSSAspect{
 			} 
 			else{
 				proceed(..);
-			}			
+			}
+			watch.stop();
+			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+				thisJoinPoint.getSourceLocation().getLine() + "," + watch.getElapsedTime());			
+						
 			return null;
 		}
 
@@ -3641,6 +3652,7 @@ public aspect XSSAspect{
 			args(param1);
 			
 		Object around(byte[] param1) : xss_writeByteArrayFunction(param1){
+			watch.start();
 			if(fixes.containsKey(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
 				thisJoinPoint.getSourceLocation().getLine()){
 				proceed(ThesisUtil.doXSSFix(param1, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
@@ -3648,7 +3660,11 @@ public aspect XSSAspect{
 			} 
 			else{
 				proceed(..);
-			}			
+			}
+			watch.stop();
+			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+				thisJoinPoint.getSourceLocation().getLine() + "," + watch.getElapsedTime());			
+						
 			return null;
 		}
 
@@ -5395,6 +5411,7 @@ public aspect XSSAspect{
 			args(param1);
 			
 		Object around(String param1) : xss_printFunction(param1){
+			watch.start();
 			if(fixes.containsKey(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
 				thisJoinPoint.getSourceLocation().getLine()){
 				proceed(ThesisUtil.doXSSFix(param1, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
@@ -5402,7 +5419,11 @@ public aspect XSSAspect{
 			} 
 			else{
 				proceed(..);
-			}			
+			}
+			watch.stop();
+			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+				thisJoinPoint.getSourceLocation().getLine() + "," + watch.getElapsedTime());			
+						
 			return null;
 		}
 
@@ -7149,6 +7170,7 @@ public aspect XSSAspect{
 			args(param1);
 			
 		Object around(String param1) : xss_printlnFunction(param1){
+			watch.start();
 			if(fixes.containsKey(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
 				thisJoinPoint.getSourceLocation().getLine()){
 				proceed(ThesisUtil.doXSSFix(param1, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
@@ -7156,7 +7178,11 @@ public aspect XSSAspect{
 			} 
 			else{
 				proceed(..);
-			}			
+			}
+			watch.stop();
+			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+				thisJoinPoint.getSourceLocation().getLine() + "," + watch.getElapsedTime());			
+						
 			return null;
 		}
 
@@ -8903,6 +8929,7 @@ public aspect XSSAspect{
 			args(param2);
 			
 		Object around(String param2) : xss_sendErrorFunction(param2){
+			watch.start();
 			if(fixes.containsKey(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
 				thisJoinPoint.getSourceLocation().getLine()){
 				proceed(ThesisUtil.doXSSFix(param2, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
@@ -8910,7 +8937,11 @@ public aspect XSSAspect{
 			} 
 			else{
 				proceed(..);
-			}			
+			}
+			watch.stop();
+			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+				thisJoinPoint.getSourceLocation().getLine() + "," + watch.getElapsedTime());			
+						
 			return null;
 		}
 
@@ -10657,6 +10688,7 @@ public aspect XSSAspect{
 			args(param1);
 			
 		Object around(String param1) : xss_getParameterFunction(param1){
+			watch.start();
 			if(fixes.containsKey(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
 				thisJoinPoint.getSourceLocation().getLine()){
 				proceed(ThesisUtil.doXSSFix(param1, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
@@ -10664,7 +10696,11 @@ public aspect XSSAspect{
 			} 
 			else{
 				proceed(..);
-			}			
+			}
+			watch.stop();
+			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+				thisJoinPoint.getSourceLocation().getLine() + "," + watch.getElapsedTime());			
+						
 			return null;
 		}
 
@@ -12411,6 +12447,7 @@ public aspect XSSAspect{
 			args(param2);
 			
 		Object around(String param2) : xss_setAttributeFunction(param2){
+			watch.start();
 			if(fixes.containsKey(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
 				thisJoinPoint.getSourceLocation().getLine()){
 				proceed(ThesisUtil.doXSSFix(param2, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
@@ -12418,7 +12455,11 @@ public aspect XSSAspect{
 			} 
 			else{
 				proceed(..);
-			}			
+			}
+			watch.stop();
+			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+				thisJoinPoint.getSourceLocation().getLine() + "," + watch.getElapsedTime());			
+						
 			return null;
 		}
 } 
