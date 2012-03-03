@@ -1,17 +1,23 @@
 		pointcut xss_<pointcut_name>(<pointcut_param>) : 
-			execution(* * <function_name>(<function_params>)) && 
+			call(* *.<function_name>(<function_params>)) && 
 			(<within_string>) && 
 			args(<args_string>);
 			
 		Object around(<pointcut_param>) : xss_<pointcut_name>(<pointcut_vars>){
 			watch.start();
 			if(fixes.containsKey(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
-				thisJoinPoint.getSourceLocation().getLine()){
-				proceed(ThesisUtil.doXSSFix(<pointcut_vars>, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
-					thisJoinPoint.getSourceLocation().getLine())));	
+				thisJoinPoint.getSourceLocation().getLine())){
+				
+				try{
+					proceed(ThesisUtil.doXSSFix(<pointcut_vars>, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+						thisJoinPoint.getSourceLocation().getLine())));	
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			} 
 			else{
-				proceed(..);
+				proceed(<pointcut_vars>);
 			}
 			watch.stop();
 			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -80,13 +81,25 @@ public class AspectGenerator {
 	
 	public String createWithinString(ArrayList<Issue> issues) {
 		String withinString = "";
+		ArrayList<String> uniqueFiles = new ArrayList<String>();
+		for (Issue issue : issues) {
+			if(!uniqueFiles.contains(issue.getFileName()))
+				uniqueFiles.add(issue.getFileName());
+		}
+		int j = 0;
 		for (int i = 0; i < issues.size(); i++) {
 			Issue tempIssue = issues.get(i);
 			tempIssue.setFilePath(tempIssue.getFilePath().replaceAll(".java", ""));
-			withinString += "within("
-					+ tempIssue.getFilePath().replaceAll("/", ".") + ")";
-			if (i != issues.size() - 1)
-				withinString += " || \n\t\t\t";
+			if(!withinString.contains(tempIssue.getFileName().replaceAll(".java", ""))){
+				//withinString += "within("
+				//	+ "*." + tempIssue.getFileName().replaceAll(".java", "") + ")";
+				j++;
+				withinString += "within("
+						+ tempIssue.getFilePath().replaceAll("/", ".") + ")";
+				if (j != uniqueFiles.size() - 1)
+					withinString += " || \n\t\t\t";
+				
+			}
 		}
 
 		return withinString;

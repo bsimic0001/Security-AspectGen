@@ -21,6 +21,8 @@ public class Main {
 	 */
 	public static void main(String[] args) throws IOException {
 		
+		System.out.println("ARGS LENGTH: " + args.length);
+		
 		InputStream logStream = Main.class.getResourceAsStream("/properties/log4j.properties");
 		Properties logProperties = new Properties();
 		logProperties.load(logStream);
@@ -31,8 +33,8 @@ public class Main {
 
 		DataFileParser parser = new DataFileParser();
 		
-		if(args[0].equals(null)){
-			parser.ParseFile("ofbiz_report.xml");
+		if(args.length == 0){
+			parser.ParseFile("jada_java2.xml");
 		}
 		else{
 			parser.ParseFile(args[0]);

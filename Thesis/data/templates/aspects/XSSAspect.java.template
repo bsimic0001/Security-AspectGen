@@ -4,6 +4,11 @@ import com.thesis.aop.util.StopWatch;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import java.util.HashMap;
+import org.owasp.esapi.errors.IntrusionException;
+import org.owasp.esapi.errors.ValidationException;
+import net.sf.jsqlparser.JSQLParserException;
+
 
 public aspect XSSAspect{
 	public HashMap<String, String> fixes = new HashMap<String, String>();
