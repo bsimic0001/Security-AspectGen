@@ -16,10 +16,11 @@ import com.thesis.aop.sqlinjection.parser.SimpleExpression;
 
 public abstract class SQLInjectionValidation {
 
+	
 	public static String escapeMySQL(String s) throws JSQLParserException {
 		MySQLCodec mysql = new MySQLCodec(MySQLCodec.MYSQL_MODE);
 		String encodedResult = s;
-		
+
 		List<SimpleExpression> items = SQLParser.getQueryValues(s);
 		for (Iterator iterator = items.iterator(); iterator.hasNext();) {
 			SimpleExpression simpleExpression = (SimpleExpression) iterator
