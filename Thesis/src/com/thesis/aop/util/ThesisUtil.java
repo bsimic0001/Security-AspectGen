@@ -2,6 +2,7 @@ package com.thesis.aop.util;
 
 import net.sf.jsqlparser.JSQLParserException;
 
+import org.apache.log4j.Logger;
 import org.owasp.esapi.errors.EncodingException;
 import org.owasp.esapi.errors.IntrusionException;
 import org.owasp.esapi.errors.ValidationException;
@@ -10,7 +11,7 @@ import com.thesis.aop.esapi.SQLInjectionValidation;
 import com.thesis.aop.esapi.XSSValidation;
 
 public class ThesisUtil {
-
+	
 	public static String[] xssFixOptions = {"JAVASCRIPT-ENCODING", 
 			"CSS-ENCODING", 
 			"HTML-ENCODING", 
@@ -25,6 +26,7 @@ public class ThesisUtil {
 			"SSN-WHITELIST",
 			"DO-NOTHING"};
 	
+	
 	public static String[] sqlInjectionFixOptions = {"SQL-ENCODE-MYSQL", "SQL-ENCODE-ORACLE"};
 	
 	public static String doXSSFix(String s, String solution) throws ValidationException, IntrusionException, JSQLParserException{
@@ -37,12 +39,16 @@ public class ThesisUtil {
 		return result.getBytes();
 	}
 	
-	public static String doSQLInjectionFix(String s, String solution) throws ValidationException, IntrusionException, JSQLParserException{
-		String result = getSolution(s, solution);
+	public static String doSQLInjectionFix(Logger logger, String s, String solution) throws ValidationException, IntrusionException, JSQLParserException{
+		String result = getSolution(logger, s, solution);
 		return result;
 	}
 	
 	public static String getSolution(String s, String solution) throws ValidationException, IntrusionException, JSQLParserException{
+		return getSolution(null, s, solution);
+	}
+	
+	public static String getSolution(Logger logger, String s, String solution) throws ValidationException, IntrusionException, JSQLParserException{
 		String result = s;
 		
 		if(solution.equals(xssFixOptions[0])){
@@ -95,10 +101,10 @@ public class ThesisUtil {
 			result = XSSValidation.escapeCustomString(s, XSSValidation.REGEX_SSN, 12);
 		}
 		else if(solution.equals(sqlInjectionFixOptions[0])){
-			result = SQLInjectionValidation.escapeMySQL(s);
+			result = SQLInjectionValidation.escapeMySQL(s, logger);
 		}
 		else if(solution.equals(sqlInjectionFixOptions[1])){
-			result = SQLInjectionValidation.escapeOracle(s);
+			result = SQLInjectionValidation.escapeOracle(s, logger);
 		}
 		
 		return result;

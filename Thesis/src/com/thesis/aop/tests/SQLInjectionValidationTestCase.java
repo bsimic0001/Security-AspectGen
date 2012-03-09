@@ -12,7 +12,12 @@ import com.thesis.aop.util.StopWatch;
 public class SQLInjectionValidationTestCase {
 
 	final Logger logger;
-
+	
+	
+	//String query = "SELECT field1, field2, field3 FROM Users WHERE Id='1' AND LENGTH(username)=N AND '1' = '1'";
+	//String query = "SELECT field1, field2, field3 FROM Users WHERE Id='1' AND ASCII(SUBSTRING(username,1,1))=97 AND '1'='1'";
+	String query = "SELECT * FROM Users WHERE ((Username='1' or '1' = '1'))/*') AND (Password=MD5('$password')))";
+	
 	public SQLInjectionValidationTestCase() {
 		PropertyConfigurator.configure("log4j.properties");
 		logger = Logger.getLogger("testLogger");
@@ -25,13 +30,18 @@ public class SQLInjectionValidationTestCase {
 		t.start();
 		try {
 
-			String validated = SQLInjectionValidation
-					.escapeMySQL("SELECT * FROM Users WHERE Username='1' OR '1' = '1' AND Password='1' OR '1' = '1'");
-			logger.info("SUCCESS: " + validated);
+			String result = SQLInjectionValidation.escapeMySQL(query, logger);
+
+			if (result.contains("VALIDATION_FAILURE")) {
+				logger.info(result);
+				//fail(result);
+			} else
+				logger.info("SUCCESS: " + result);
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.info("Exception in MySQL Test", e);
+			//logger.info("Exception in MySQL Test", e);
+			logger.info("Exception in MySQL Test - FAILURE");
 			fail("MySQL Test Failed - Exception Thrown");
 		} finally {
 			t.stop();
@@ -49,13 +59,18 @@ public class SQLInjectionValidationTestCase {
 		t.start();
 		try {
 
-			String validated = SQLInjectionValidation
-					.escapeMySQL("SELECT * FROM Users WHERE Username='1' OR '1' = '1' AND Password='1' OR '1' = '1'");
-			logger.info("SUCCESS: " + validated);
+			String result = SQLInjectionValidation.escapeMySQL(query, logger);
+
+			if (result.contains("VALIDATION_FAILURE")) {
+				logger.info(result);
+				//fail(result);
+			} else
+				logger.info("SUCCESS: " + result);
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.info("Exception in Oracle Test", e);
+			//logger.info("Exception in Oracle Test", e);
+			logger.info("Exception in Oracle Test - FAILURE");
 			fail("Oracle Test Failed - Exception Thrown");
 		} finally {
 			t.stop();

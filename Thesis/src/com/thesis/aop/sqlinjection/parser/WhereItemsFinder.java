@@ -184,6 +184,11 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 
 	@Override
 	public void visit(Function function) {
+		System.out.println("****************** FUNCTION **********************");
+		ExpressionItem item = new ExpressionItem();
+		item.expressionType = 0;
+		item.columnName = function.toString();
+		itemList.add(item);
 		// TODO Auto-generated method stub
 		
 	}
