@@ -17,7 +17,7 @@ public aspect SQLInjectionAspect{
 	
 	public SQLInjectionAspect(){
 		PropertyConfigurator.configure("log4j.properties");
-		logger = Logger.getRootLogger();
+		logger = Logger.getLogger("sqlInjectionLogger");
 		logger.info("SQL Injection Aspect Created");
 		watch = new StopWatch();
 		

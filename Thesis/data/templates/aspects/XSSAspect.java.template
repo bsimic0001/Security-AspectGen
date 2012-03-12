@@ -17,7 +17,7 @@ public aspect XSSAspect{
 	
 	public XSSAspect(){
 		PropertyConfigurator.configure("log4j.properties");
-		logger = Logger.getRootLogger();
+		logger = Logger.getLogger("xssLogger");
 		logger.info("XSS Aspect Created!");
 		watch = new StopWatch();
 		
