@@ -1,4 +1,6 @@
 package com.thesis.aop.esapi;
+import java.util.regex.Pattern;
+
 import org.owasp.esapi.ESAPI;
 import org.owasp.esapi.codecs.MySQLCodec;
 import org.owasp.esapi.codecs.OracleCodec;
@@ -19,7 +21,10 @@ public abstract class XSSValidation {
 	public XSSValidation(){}
 	
 	public static String escapeCustomString(String s, String regex, int maxLength) throws ValidationException, IntrusionException{
-		return ESAPI.validator().getValidInput("CUSTOM_STRING_ESCAPE", s, regex, maxLength, true);
+		Pattern p = Pattern.compile(regex);
+		//Sending pattern directly.
+		return ESAPI.validator().getValidInput("CUSTOM_STRING_ESCAPE", s, p, maxLength, false, false);
+		//return ESAPI.validator().getValidInput("CUSTOM_STRING_ESCAPE", s, regex, maxLength, true);
 	}
 	
 	public static String escapeJavaScript(String s){
@@ -42,7 +47,16 @@ public abstract class XSSValidation {
 		return ESAPI.encoder().encodeForURL(s);
 	}
 	
-	public static String validateCreditCard(String s) throws ValidationException, IntrusionException{
-		return ESAPI.validator().getValidCreditCard("CREDIT_CARD_VALIDATION", s, false);
+	public static String validateCreditCard(String s){
+		try {
+			return ESAPI.validator().getValidCreditCard("CREDIT_CARD", s, false);
+		} catch (ValidationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IntrusionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return s;
 	}
 }

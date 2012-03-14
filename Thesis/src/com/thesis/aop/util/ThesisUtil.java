@@ -74,9 +74,6 @@ public class ThesisUtil {
 		else if(solution.equals(xssFixOptions[5])){
 			try {
 				result = XSSValidation.validateCreditCard(s);
-			} catch (ValidationException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			} catch (IntrusionException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

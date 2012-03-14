@@ -493,7 +493,7 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 	public void setExpressionType(ExpressionItem i, String value){
 		if(leftExpression){
 			i.expressionType = 0;
-			i.columnName = i.
+			i.columnName = value;
 		}
 		else
 			i.expressionType = 2;
