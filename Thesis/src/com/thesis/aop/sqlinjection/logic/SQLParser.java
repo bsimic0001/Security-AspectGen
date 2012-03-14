@@ -31,7 +31,7 @@ public abstract class SQLParser {
 
 		ArrayList<Expression> insertList = new ArrayList<Expression>();
 		WhereItemsFinder wh = null;
-		List<SimpleExpression> whereList = null;
+		List<SimpleExpression> whereList = new ArrayList<SimpleExpression>();
 		
 		if (stmt instanceof Select) {
 			Select s = (Select) stmt;
