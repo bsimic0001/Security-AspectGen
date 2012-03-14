@@ -36,10 +36,10 @@ public abstract class SQLInjectionValidation {
 							+ simpleExpression.getColumnName()
 							+ " and Right Side: " + simpleExpression.value);
 					logger.info("Replacing Obvious Tautology With 'x=y' in order to prevent execution of attack");
-					String regex = "(" + simpleExpression.columnName
-							+ "\\s{0,100}" + simpleExpression.op + "\\s{0,100}"
-							+ simpleExpression.value + ")";
-					encodedResult = encodedResult.replaceAll(regex, "x=y");
+					String regex = "(.{0,1}" + simpleExpression.columnName
+							+ ".{0,1}\\s{0,1000}" + simpleExpression.op + "\\s{0,1000}.{0,1}"
+							+ simpleExpression.value + ".{0,1})";
+					encodedResult = encodedResult.replaceAll(regex, " x=y");
 				} else if (simpleExpression.valueType == CONSTANT.VALUE_STRING) {
 					encodedResult = encodedResult.replace(
 							"\"" + simpleExpression.value + "\"",
@@ -78,10 +78,10 @@ public abstract class SQLInjectionValidation {
 							+ simpleExpression.getColumnName()
 							+ " and Right Side: " + simpleExpression.value);
 					logger.info("Replacing Obvious Tautology With 'x=y' in order to prevent execution of attack");
-					String regex = "(" + simpleExpression.columnName
-							+ "\\s{0,100}" + simpleExpression.op + "\\s{0,100}"
-							+ simpleExpression.value + ")";
-					encodedResult = encodedResult.replaceAll(regex, "x=y");
+					String regex = "(.{0,1}" + simpleExpression.columnName
+							+ ".{0,1}\\s{0,1000}" + simpleExpression.op + "\\s{0,1000}.{0,1}"
+							+ simpleExpression.value + ".{0,1})";
+					encodedResult = encodedResult.replaceAll(regex, " x=y");
 				} else if (simpleExpression.valueType == CONSTANT.VALUE_STRING) {
 					encodedResult = encodedResult.replace(
 							"\"" + simpleExpression.value + "\"",

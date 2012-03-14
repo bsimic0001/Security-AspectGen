@@ -15,8 +15,11 @@ public class SQLInjectionValidationTestCase {
 	
 	
 	//String query = "SELECT field1, field2, field3 FROM Users WHERE Id='1' AND LENGTH(username)=N AND '1' = '1'";
+	//String query = "SELECT field1, field2, field3 FROM Users WHERE Id='1' AND LENGTH(username)=N OR 1=1";
+	String query = "SELECT field1, field2, field3 FROM Users WHERE Id='1' AND LENGTH(username)=N OR 2.3 > 2";
+
 	//String query = "SELECT field1, field2, field3 FROM Users WHERE Id='1' AND ASCII(SUBSTRING(username,1,1))=97 AND '1'='1'";
-	String query = "SELECT * FROM Users WHERE ((Username='1' or '1' = '1'))/*') AND (Password=MD5('$password')))";
+	//String query = "SELECT * FROM Users WHERE ((Username='1' or '1' = '1'))/*') AND (Password=MD5('$password')))";
 	
 	public SQLInjectionValidationTestCase() {
 		PropertyConfigurator.configure("log4j.properties");
@@ -59,7 +62,7 @@ public class SQLInjectionValidationTestCase {
 		t.start();
 		try {
 
-			String result = SQLInjectionValidation.escapeMySQL(query, logger);
+			String result = SQLInjectionValidation.escapeOracle(query, logger);
 
 			if (result.contains("VALIDATION_FAILURE")) {
 				logger.info(result);
