@@ -24,16 +24,23 @@ public class XSSValidationTestCase {
 	public void testEscapeCustomString() {
 		String returnString = "";
 		try {
-			returnString = XSSValidation.escapeCustomString("abc", "[a-z]+", 300);
+			returnString = XSSValidation.escapeCustomString("abc123", "[a-z]+", 300);
 		} catch (ValidationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			logger.info("XSS Test FAIL - EscapeCustomString");
+			logger.info("XSS Test FAIL - ", e);
 			fail("ValidationException");
 		} catch (IntrusionException e) {
 			// TODO Auto-generated catch block
-			logger.info("XSS Test Successful - EscapeCustomString");
+			logger.info("XSS Test FAIL - EscapeCustomString");
+			logger.info("XSS Test FAIL - ", e);
 			fail("IntrusionException");		
+		}
+		catch (Exception e){
+			logger.info("XSS Test FAIL - EscapeCustomString");
+			logger.info("XSS Test FAIL - ", e);
+			fail("Exception");		
 		}
 		logger.info("XSS Test Successful - EscapeCustomString");
 	}

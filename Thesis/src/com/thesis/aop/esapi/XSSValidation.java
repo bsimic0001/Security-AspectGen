@@ -20,7 +20,7 @@ public abstract class XSSValidation {
 	
 	public XSSValidation(){}
 	
-	public static String escapeCustomString(String s, String regex, int maxLength) throws ValidationException, IntrusionException{
+	public static String escapeCustomString(String s, String regex, int maxLength) throws ValidationException, IntrusionException, Exception{
 		Pattern p = Pattern.compile(regex);
 		//Sending pattern directly.
 		return ESAPI.validator().getValidInput("CUSTOM_STRING_ESCAPE", s, p, maxLength, false, false);
