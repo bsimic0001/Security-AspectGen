@@ -32,4 +32,45 @@ public class SimpleExpression{
 		this.value = express.value;
 		this.valueType = express.valueType;
 	}
+
+	public String getTableName() {
+		return tableName;
+	}
+
+	public void setTableName(String tableName) {
+		this.tableName = tableName;
+	}
+
+	public String getColumnName() {
+		return columnName;
+	}
+
+	public void setColumnName(String columnName) {
+		this.columnName = columnName;
+	}
+
+	public String getOp() {
+		return op;
+	}
+
+	public void setOp(String op) {
+		this.op = op;
+	}
+
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
+	}
+
+	public int getValueType() {
+		return valueType;
+	}
+
+	public void setValueType(int valueType) {
+		this.valueType = valueType;
+	}
+	
 }

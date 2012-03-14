@@ -1,0 +1,25 @@
+<class-diagram version="1.0.7" icons="true" always-add-relationships="false" generalizations="true" realizations="true" 
+  associations="true" dependencies="false" nesting-relationships="true">  
+  <class id="1" corner="BOTTOM_RIGHT" language="java" 
+    name="com.thesis.aop.sqlinjection.logic.SQLInjectionAspectGenerator" project="Thesis" 
+    file="/Thesis/src/com/thesis/aop/sqlinjection/logic/SQLInjectionAspectGenerator.java" binary="false">    
+    <position height="291" width="256" x="393" y="103"/>    
+    <display autosize="false" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class id="2" corner="BOTTOM_RIGHT" language="java" name="com.thesis.aop.xss.logic.XSSAspectGenerator" 
+    project="Thesis" file="/Thesis/src/com/thesis/aop/xss/logic/XSSAspectGenerator.java" binary="false">    
+    <position height="291" width="256" x="661" y="103"/>    
+    <display autosize="false" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <classifier-display autosize="true" package="true" initial-value="false" signature="true" visibility="true">    
+    <attributes public="true" package="true" protected="true" private="true"/>    
+    <operations public="true" package="true" protected="true" private="true"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>
+</class-diagram>

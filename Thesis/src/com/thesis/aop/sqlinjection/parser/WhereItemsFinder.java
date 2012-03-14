@@ -31,10 +31,12 @@ import net.sf.jsqlparser.expression.operators.conditional.OrExpression;
 import net.sf.jsqlparser.expression.operators.relational.Between;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
 import net.sf.jsqlparser.expression.operators.relational.ExistsExpression;
+import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.expression.operators.relational.GreaterThan;
 import net.sf.jsqlparser.expression.operators.relational.GreaterThanEquals;
 import net.sf.jsqlparser.expression.operators.relational.InExpression;
 import net.sf.jsqlparser.expression.operators.relational.IsNullExpression;
+import net.sf.jsqlparser.expression.operators.relational.ItemsListVisitor;
 import net.sf.jsqlparser.expression.operators.relational.LikeExpression;
 import net.sf.jsqlparser.expression.operators.relational.Matches;
 import net.sf.jsqlparser.expression.operators.relational.MinorThan;
@@ -63,6 +65,8 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 	private ArrayList<JoinExpression> joinList;
 	private ArrayList<SimpleExpression> selectionList;
 	private ArrayList<ExpressionItem> itemList;
+	private boolean leftExpression = false;
+
 	public WhereItemsFinder(Select select){
 		joinList = new ArrayList<JoinExpression>();
 		selectionList = new ArrayList<SimpleExpression>();
@@ -161,7 +165,6 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 	
 	@Override
 	public void visit(PlainSelect plainSelect) {
-		// TODO Auto-generated method stub
 		if(plainSelect.getWhere()!=null)
 			plainSelect.getWhere().accept(this);
 	}
@@ -174,9 +177,9 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 
 	@Override
 	public void visit(NullValue nullValue) {
-		// TODO Auto-generated method stub
 		ExpressionItem item = new ExpressionItem();
-		item.expressionType = 2;
+		setExpressionType(item, nullValue.toString());
+		//item.expressionType = 2;
 		item.valueType = "NULL";
 		item.value = nullValue.toString();
 		itemList.add(item);
@@ -184,11 +187,11 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 
 	@Override
 	public void visit(Function function) {
-		System.out.println("****************** FUNCTION **********************");
 		ExpressionItem item = new ExpressionItem();
 		item.expressionType = 0;
 		item.columnName = function.toString();
 		itemList.add(item);
+		leftExpression = false;
 		// TODO Auto-generated method stub
 		
 	}
@@ -196,20 +199,18 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 	@Override
 	public void visit(InverseExpression inverseExpression) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void visit(JdbcParameter jdbcParameter) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void visit(DoubleValue doubleValue) {
-		// TODO Auto-generated method stub
 		ExpressionItem item = new ExpressionItem();
-		item.expressionType = 2;
+		setExpressionType(item, doubleValue.toString());
+		//item.expressionType = 2;
 		item.valueType = "double";
 		item.value = doubleValue.toString();
 		itemList.add(item);
@@ -217,10 +218,10 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 
 	@Override
 	public void visit(LongValue longValue) {
-		// TODO Auto-generated method stub
 		//System.out.println(longValue.getValue());
 		ExpressionItem item = new ExpressionItem();
-		item.expressionType = 2;
+		setExpressionType(item, longValue.toString());
+		//item.expressionType = 2;
 		item.valueType = "long";
 		item.value = longValue.getStringValue();
 		itemList.add(item);
@@ -228,9 +229,9 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 
 	@Override
 	public void visit(DateValue dateValue) {
-		// TODO Auto-generated method stub
 		ExpressionItem item = new ExpressionItem();
-		item.expressionType = 2;
+		setExpressionType(item, dateValue.toString());
+		//item.expressionType = 2;
 		item.valueType = "date";
 		item.value = dateValue.toString();
 		itemList.add(item);
@@ -238,9 +239,9 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 
 	@Override
 	public void visit(TimeValue timeValue) {
-		// TODO Auto-generated method stub
 		ExpressionItem item = new ExpressionItem();
-		item.expressionType = 2;
+		setExpressionType(item, timeValue.toString());
+		//item.expressionType = 2;
 		item.valueType = "time";
 		item.value = timeValue.toString();
 		itemList.add(item);
@@ -248,9 +249,9 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 
 	@Override
 	public void visit(TimestampValue timestampValue) {
-		// TODO Auto-generated method stub
 		ExpressionItem item = new ExpressionItem();
-		item.expressionType = 2;
+		setExpressionType(item, timestampValue.toString());
+		//item.expressionType = 2;
 		item.valueType = "timestamp";
 		item.value = timestampValue.toString();
 		itemList.add(item);
@@ -258,15 +259,14 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 
 	@Override
 	public void visit(Parenthesis parenthesis) {
-		// TODO Auto-generated method stub
 		parenthesis.getExpression().accept(this);
 	}
 
 	@Override
 	public void visit(StringValue stringValue) {
-		// TODO Auto-generated method stub
 		ExpressionItem item = new ExpressionItem();
-		item.expressionType = 2;
+		setExpressionType(item, stringValue.getValue());
+		//item.expressionType = 2;
 		item.valueType = "string";
 		item.value = stringValue.getValue();
 		itemList.add(item);
@@ -298,7 +298,6 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 
 	@Override
 	public void visit(AndExpression andExpression) {
-		// TODO Auto-generated method stub
 		//System.out.println("TPYE:AND");
 		//System.out.println(andExpression.getLeftExpression().toString());
 		//System.out.println(andExpression.getRightExpression().toString());
@@ -308,7 +307,6 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 
 	@Override
 	public void visit(OrExpression orExpression) {
-		// TODO Auto-generated method stub
 		//System.out.println("TYPE:OR");
 		orExpression.getLeftExpression().accept(this);
 		orExpression.getRightExpression().accept(this);
@@ -322,52 +320,55 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 
 	@Override
 	public void visit(EqualsTo equalsTo) {
-		// TODO Auto-generated method stub
 		//System.out.println("TPYE:=");
+		leftExpression = true;
 		equalsTo.getLeftExpression().accept(this);
 		ExpressionItem item = new ExpressionItem();
 		item.expressionType = 1;
 		item.op = "=";
 		itemList.add(item);
+		leftExpression = false;
 		equalsTo.getRightExpression().accept(this);
 	}
 
 	@Override
 	public void visit(GreaterThan greaterThan) {
-		// TODO Auto-generated method stub
+		leftExpression = true;
 		greaterThan.getLeftExpression().accept(this);
 		ExpressionItem item = new ExpressionItem();
 		item.expressionType = 1;
 		item.op = ">";
 		itemList.add(item);
+		leftExpression = false;
 		greaterThan.getRightExpression().accept(this);
 	}
 
 	@Override
 	public void visit(GreaterThanEquals greaterThanEquals) {
-		// TODO Auto-generated method stub
+		leftExpression = true;
 		greaterThanEquals.getLeftExpression().accept(this);
 		ExpressionItem item = new ExpressionItem();
 		item.expressionType = 1;
 		item.op = ">=";
 		itemList.add(item);
+		leftExpression = false;
 		greaterThanEquals.getRightExpression().accept(this);
 	}
 
 	@Override
 	public void visit(InExpression inExpression) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void visit(IsNullExpression isNullExpression) {
-		// TODO Auto-generated method stub
+		leftExpression = true;
 		isNullExpression.getLeftExpression().accept(this);
 		ExpressionItem item = new ExpressionItem();
 		item.expressionType = 1;
 		item.op = (isNullExpression.isNot()?"!=":"=");
 		itemList.add(item);
+		leftExpression = false;
 		ExpressionItem item2 = new ExpressionItem();
 		item2.expressionType = 2;
 		item2.valueType = "NULL";
@@ -384,41 +385,43 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 
 	@Override
 	public void visit(MinorThan minorThan) {
-		// TODO Auto-generated method stub
 		//System.out.println("<");
+		leftExpression = true;
 		minorThan.getLeftExpression().accept(this);
 		ExpressionItem item = new ExpressionItem();
 		item.expressionType = 1;
 		item.op = "<";
 		itemList.add(item);
+		leftExpression = false;
 		minorThan.getRightExpression().accept(this);
 	}
 
 	@Override
 	public void visit(MinorThanEquals minorThanEquals) {
-		// TODO Auto-generated method stub
+		leftExpression = true;
 		minorThanEquals.getLeftExpression().accept(this);
 		ExpressionItem item = new ExpressionItem();
 		item.expressionType = 1;
 		item.op = "<=";
 		itemList.add(item);
+		leftExpression = false;
 		minorThanEquals.getRightExpression().accept(this);
 	}
 
 	@Override
 	public void visit(NotEqualsTo notEqualsTo) {
-		// TODO Auto-generated method stub
+		leftExpression = true;
 		notEqualsTo.getLeftExpression().accept(this);
 		ExpressionItem item = new ExpressionItem();
 		item.expressionType = 1;
 		item.op = "<>";
 		itemList.add(item);
+		leftExpression = false;
 		notEqualsTo.getRightExpression().accept(this);
 	}
 
 	@Override
 	public void visit(Column tableColumn) {
-		// TODO Auto-generated method stub
 		//System.out.println("TYPE:table column");
 		//System.out.println(tableColumn.getColumnName());
 		//System.out.println(tableColumn.getTable().toString());
@@ -427,6 +430,8 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 		item.tableName = tableColumn.getTable().toString();
 		item.columnName = tableColumn.getColumnName();
 		itemList.add(item);
+		leftExpression = false;
+
 	}
 
 	@Override
@@ -438,7 +443,6 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 	@Override
 	public void visit(CaseExpression caseExpression) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -450,20 +454,16 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 	@Override
 	public void visit(ExistsExpression existsExpression) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void visit(AllComparisonExpression allComparisonExpression) {
 		// TODO Auto-generated method stub
-	
 	}
 
 	@Override
 	public void visit(AnyComparisonExpression anyComparisonExpression) {
-		// TODO Auto-generated method stub
-		
-		
+		// TODO Auto-generated method stub		
 	}
 	@Override
 	public void visit(Concat arg0) {
@@ -473,7 +473,6 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 	@Override
 	public void visit(Matches arg0) {
 		// TODO Auto-generated method stub
-		
 	}
 	@Override
 	public void visit(BitwiseAnd arg0) {
@@ -489,6 +488,16 @@ public class WhereItemsFinder implements SelectVisitor, ExpressionVisitor{
 	public void visit(BitwiseXor arg0) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	public void setExpressionType(ExpressionItem i, String value){
+		if(leftExpression){
+			i.expressionType = 0;
+			i.columnName = i.
+		}
+		else
+			i.expressionType = 2;
+		leftExpression = false;
 	}
 
 

@@ -1,8 +1,11 @@
 package com.thesis.aop.esapi;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 
 import net.sf.jsqlparser.JSQLParserException;
 
@@ -27,13 +30,23 @@ public abstract class SQLInjectionValidation {
 			for (Iterator iterator = items.iterator(); iterator.hasNext();) {
 				SimpleExpression simpleExpression = (SimpleExpression) iterator
 						.next();
-				if (simpleExpression.valueType == CONSTANT.VALUE_STRING) {
-					encodedResult.replace(
+				boolean tautology = testTautology(simpleExpression, logger);
+				if (tautology) {
+					logger.info("Obvious Tautology Detected with Left Side: "
+							+ simpleExpression.getColumnName()
+							+ " and Right Side: " + simpleExpression.value);
+					logger.info("Replacing Obvious Tautology With 'x=y' in order to prevent execution of attack");
+					String regex = "(" + simpleExpression.columnName
+							+ "\\s{0,100}" + simpleExpression.op + "\\s{0,100}"
+							+ simpleExpression.value + ")";
+					encodedResult = encodedResult.replaceAll(regex, "x=y");
+				} else if (simpleExpression.valueType == CONSTANT.VALUE_STRING) {
+					encodedResult = encodedResult.replace(
 							"\"" + simpleExpression.value + "\"",
 							"\""
 									+ ESAPI.encoder().encodeForSQL(mysql,
 											simpleExpression.value) + "\"");
-					encodedResult.replace(
+					encodedResult = encodedResult.replace(
 							"'" + simpleExpression.value + "'",
 							"'"
 									+ ESAPI.encoder().encodeForSQL(mysql,
@@ -55,18 +68,27 @@ public abstract class SQLInjectionValidation {
 		String encodedResult = s;
 
 		try {
-
 			List<SimpleExpression> items = SQLParser.getQueryValues(s);
 			for (Iterator iterator = items.iterator(); iterator.hasNext();) {
 				SimpleExpression simpleExpression = (SimpleExpression) iterator
 						.next();
-				if (simpleExpression.valueType == CONSTANT.VALUE_STRING) {
-					encodedResult.replace(
+				boolean tautology = testTautology(simpleExpression, logger);
+				if (tautology) {
+					logger.info("Obvious Tautology Detected with Left Side: "
+							+ simpleExpression.getColumnName()
+							+ " and Right Side: " + simpleExpression.value);
+					logger.info("Replacing Obvious Tautology With 'x=y' in order to prevent execution of attack");
+					String regex = "(" + simpleExpression.columnName
+							+ "\\s{0,100}" + simpleExpression.op + "\\s{0,100}"
+							+ simpleExpression.value + ")";
+					encodedResult = encodedResult.replaceAll(regex, "x=y");
+				} else if (simpleExpression.valueType == CONSTANT.VALUE_STRING) {
+					encodedResult = encodedResult.replace(
 							"\"" + simpleExpression.value + "\"",
 							"\""
 									+ ESAPI.encoder().encodeForSQL(oracle,
 											simpleExpression.value) + "\"");
-					encodedResult.replace(
+					encodedResult = encodedResult.replace(
 							"'" + simpleExpression.value + "'",
 							"'"
 									+ ESAPI.encoder().encodeForSQL(oracle,
@@ -79,6 +101,40 @@ public abstract class SQLInjectionValidation {
 		}
 
 		return encodedResult;
+	}
+
+	public static boolean testTautology(SimpleExpression exp, Logger logger) {
+		ScriptEngineManager manager = new ScriptEngineManager();
+		ScriptEngine engine = manager.getEngineByName("js");
+		boolean resultBool = false;
+
+		try {
+			Object result;
+
+			if (exp.getOp().equals("=")) {
+				result = engine.eval("'" + exp.getColumnName() + "'" + "=="
+						+ "'" + exp.getValue() + "'");
+			} else if (exp.getOp().equals("<>")) {
+				result = engine.eval(exp.getColumnName() + "!="
+						+ exp.getValue());
+			} else {
+				result = engine.eval(exp.getColumnName() + exp.getOp()
+						+ exp.getValue());
+			}
+
+			result = (Boolean) result;
+
+			Boolean boolResult = new Boolean(result.toString());
+
+			System.out.println(result);
+			resultBool = boolResult.booleanValue();
+
+		} catch (ScriptException e) {
+			logger.info("ERROR in Tautology Detection", e);
+		} finally {
+			return resultBool;
+		}
+
 	}
 
 }
