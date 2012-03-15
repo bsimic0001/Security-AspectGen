@@ -1,0 +1,72 @@
+<class-diagram version="1.0.7" icons="true" always-add-relationships="false" generalizations="true" realizations="true" 
+  associations="true" dependencies="false" nesting-relationships="true">  
+  <class id="1" corner="BOTTOM_RIGHT" language="java" name="com.thesis.aop.sqlinjection.logic.SQLParser" 
+    project="Thesis" file="/Thesis/src/com/thesis/aop/sqlinjection/logic/SQLParser.java" binary="false">    
+    <position x="474" y="37" width="254" height="83"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class id="2" corner="BOTTOM_RIGHT" language="java" name="com.thesis.aop.sqlinjection.parser.ExpressionItem" 
+    project="Thesis" file="/Thesis/src/com/thesis/aop/sqlinjection/parser/WhereItemsFinder.java" binary="false">    
+    <position x="956" y="37" width="149" height="163"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="false" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class id="3" corner="BOTTOM_RIGHT" language="java" name="com.thesis.aop.sqlinjection.parser.WhereItemsFinder" 
+    project="Thesis" file="/Thesis/src/com/thesis/aop/sqlinjection/parser/WhereItemsFinder.java" binary="false">    
+    <position x="35" y="266" width="259" height="354"/>    
+    <display autosize="false" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <interface id="4" corner="BOTTOM_RIGHT" language="java" name="net.sf.jsqlparser.statement.select.SelectVisitor" 
+    project="Thesis" file="/Thesis/lib/jsqlparser.jar" binary="true">    
+    <position x="768" y="37" width="148" height="83"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </interface>  
+  <interface id="5" corner="BOTTOM_RIGHT" language="java" name="net.sf.jsqlparser.expression.ExpressionVisitor" 
+    project="Thesis" file="/Thesis/lib/jsqlparser.jar" binary="true">    
+    <position x="401" y="212" width="204" height="242"/>    
+    <display autosize="false" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </interface>  
+  <class id="6" corner="BOTTOM_RIGHT" language="java" name="com.thesis.aop.sqlinjection.parser.JoinExpression" 
+    project="Thesis" file="/Thesis/src/com/thesis/aop/sqlinjection/parser/JoinExpression.java" binary="false">    
+    <position x="41" y="37" width="149" height="147"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class id="7" corner="BOTTOM_RIGHT" language="java" name="com.thesis.aop.sqlinjection.parser.SimpleExpression" 
+    project="Thesis" file="/Thesis/src/com/thesis/aop/sqlinjection/parser/SimpleExpression.java" binary="false">    
+    <position x="1145" y="37" width="251" height="339"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <association id="8">    
+    <end type="SOURCE" refId="3" navigable="false">      
+      <attribute id="9" name="joinList"/>      
+      <multiplicity id="10" minimum="0" maximum="2147483647"/>    
+    </end>    
+    <end type="TARGET" refId="6" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <classifier-display autosize="true" package="true" initial-value="false" signature="true" visibility="true">    
+    <attributes public="true" package="true" protected="true" private="true"/>    
+    <operations public="true" package="true" protected="true" private="true"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>
+</class-diagram>

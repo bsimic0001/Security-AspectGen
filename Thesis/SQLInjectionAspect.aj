@@ -202,24 +202,7 @@ public aspect SQLInjectionAspect{
 			args(param1);
 			
 		Object around(String param1) : sqlInjection_createSQLQueryFunction(param1){
-			watch.start();
-			if(fixes.containsKey(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
-				thisJoinPoint.getSourceLocation().getLine())){
-				try{
-					proceed(ThesisUtil.doSQLInjectionFix(param1, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
-						thisJoinPoint.getSourceLocation().getLine())));		
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			else{
-				proceed(param1);
-			}
-			watch.stop();
-			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
-				thisJoinPoint.getSourceLocation().getLine() + "," + watch.getElapsedTime());			
-			return null;
+			return proceed(param1);
 		}
 
 		pointcut sqlInjection_executeUpdateFunction(String param1) : 
