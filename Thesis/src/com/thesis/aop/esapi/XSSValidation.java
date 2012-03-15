@@ -63,14 +63,17 @@ public abstract class XSSValidation {
 	
 	public static String validateCreditCard(String s){
 		try {
-			return ESAPI.validator().getValidCreditCard("CREDIT_CARD", s, false);
+			s = ESAPI.validator().getValidCreditCard("CREDIT_CARD", s, false);
 		} catch (ValidationException e) {
-			// TODO Auto-generated catch block
+			s = "VALIDATION FAILED " + s;
 			e.printStackTrace();
-		} catch (IntrusionException e) {
-			// TODO Auto-generated catch block
+		} catch (Exception e) {
+			s = "VALIDATION FAILED " + s;
 			e.printStackTrace();
 		}
-		return s;
+		finally{
+			return s;
+		}
+		
 	}
 }

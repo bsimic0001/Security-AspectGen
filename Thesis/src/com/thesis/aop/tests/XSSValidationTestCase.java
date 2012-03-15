@@ -66,7 +66,16 @@ public class XSSValidationTestCase {
 
 	@Test
 	public void testValidateCreditCard() {
-		fail("Not yet implemented");
+		try{
+			logger.info("Credit Card Validation Result: " + 
+				XSSValidation.validateCreditCard("4111111111111111"));
+		}
+		catch(Exception e){
+			logger.info("CC VALIDATION FAILED");
+			fail("CREDIT CARD VALIDATION FAIL");
+		}
+		
+		
 	}
 
 }
