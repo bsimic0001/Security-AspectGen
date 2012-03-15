@@ -1,4 +1,5 @@
 package com.thesis.aop.esapi;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.owasp.esapi.ESAPI;
@@ -20,11 +21,24 @@ public abstract class XSSValidation {
 	
 	public XSSValidation(){}
 	
-	public static String escapeCustomString(String s, String regex, int maxLength) throws ValidationException, IntrusionException, Exception{
+	public static String escapeCustomString(String s, String regex, int maxLength){
 		Pattern p = Pattern.compile(regex);
+		
 		//Sending pattern directly.
-		return ESAPI.validator().getValidInput("CUSTOM_STRING_ESCAPE", s, p, maxLength, false, false);
-		//return ESAPI.validator().getValidInput("CUSTOM_STRING_ESCAPE", s, regex, maxLength, true);
+		try {
+			return ESAPI.validator().getValidInput("CUSTOM_STRING_ESCAPE", s, p, maxLength, false, false);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			String resultString = "";
+			Matcher m = p.matcher(s);
+			while(m.find()){
+				resultString += m.group(0);
+			}
+			
+			return resultString;
+			
+		}
 	}
 	
 	public static String escapeJavaScript(String s){
