@@ -24,6 +24,8 @@ public class XSSAspectGenerator extends AspectGenerator{
 	public ArrayList<AspectBean> aspectBeans = new ArrayList<AspectBean>();
 	public ArrayList<Function> functions;
 	public HashMap<String, String> adviceMap = new HashMap<String, String>();
+	public HashMap<String, String> customRegexMap = new HashMap<String, String>();
+	 
 	public String[] templateVariables = { "<pointcut_name>",
 			"<pointcut_param>", "<function_name>", "<function_params>",
 			"<within_string>", "<args_string>", "<pointcut_vars>",

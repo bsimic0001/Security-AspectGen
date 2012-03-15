@@ -12,6 +12,7 @@ import net.sf.jsqlparser.JSQLParserException;
 
 public aspect XSSAspect{
 	public HashMap<String, String> fixes = new HashMap<String, String>();
+	public HashMap<String, String> customRegex = new HashMap<String, String>();
 	Logger logger;
 	StopWatch watch;
 	
@@ -22,6 +23,7 @@ public aspect XSSAspect{
 		watch = new StopWatch();
 		
 		<insert_fix_map>
+			
 	}
 	
 	<insert_code_here>

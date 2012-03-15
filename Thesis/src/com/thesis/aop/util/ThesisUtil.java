@@ -17,7 +17,7 @@ public class ThesisUtil {
 			"URL-ENCODING", "CREDIT-CARD-VALIDATION",
 			"ALPHA-NUMERIC-WHITELIST", "ALPHA-WHITELIST", "EMAIL-WHITELIST",
 			"ZIP-CODE-WHITELIST", "IP-ADDRESS-WHITELIST", "SSN-WHITELIST",
-			"DO-NOTHING" };
+			"DO-NOTHING", "CUSTOM" };
 
 	public static String[] sqlInjectionFixOptions = { "SQL-ENCODE-MYSQL",
 			"SQL-ENCODE-ORACLE" };
@@ -95,6 +95,10 @@ public class ThesisUtil {
 				result = SQLInjectionValidation.escapeMySQL(s, logger);
 			} else if (solution.equals(sqlInjectionFixOptions[1])) {
 				result = SQLInjectionValidation.escapeOracle(s, logger);
+			}
+			else{
+				result = XSSValidation.escapeCustomString(s,
+						solution, 500);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

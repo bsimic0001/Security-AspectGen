@@ -72,6 +72,13 @@ public class AspectGenerator {
 		
 		advice = fixOptions[answerInteger.intValue()];
 		
+		if(advice.equals("CUSTOM")){
+			System.out.println("");
+			System.out.print("Enter Custom: ");
+			String custom = br.readLine();
+			advice = custom;
+		}
+		
 		return advice;
 	}
 	
@@ -207,6 +214,7 @@ public class AspectGenerator {
 
 				String adviceStringReplace = "<insert_code_here>";
 				String apsectFixMapStringReplace = "<insert_fix_map>";
+				
 				if (str.indexOf(apsectFixMapStringReplace) > -1) {
 					str = str + "\n";
 					System.out.println("Writing Fix Map");
