@@ -1,7 +1,10 @@
 package com.thesis.aop.esapi;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -14,18 +17,31 @@ import org.owasp.esapi.ESAPI;
 import org.owasp.esapi.codecs.MySQLCodec;
 import org.owasp.esapi.codecs.OracleCodec;
 
+import com.thesis.aop.main.Main;
 import com.thesis.aop.sqlinjection.logic.SQLParser;
 import com.thesis.aop.sqlinjection.parser.CONSTANT;
 import com.thesis.aop.sqlinjection.parser.SimpleExpression;
 
 public abstract class SQLInjectionValidation {
-
+	
+	private static String commentRegex = "";
+	private static String commentStartRegex = "";
+	
+	private static Properties regexProperties;
+	
+	public static void loadRegexProperties() throws IOException{
+		InputStream logStream = Main.class.getResourceAsStream("/properties/regex.properties");
+		regexProperties = new Properties();
+		regexProperties.load(logStream);
+	}
+	
 	public static String escapeMySQL(String s, Logger logger)
 			throws JSQLParserException {
 		MySQLCodec mysql = new MySQLCodec(MySQLCodec.MYSQL_MODE);
 		String encodedResult = s;
-
 		try {
+			loadRegexProperties();
+			encodedResult = removeCommentsFromString(encodedResult);
 			List<SimpleExpression> items = SQLParser.getQueryValues(s);
 			for (Iterator iterator = items.iterator(); iterator.hasNext();) {
 				SimpleExpression simpleExpression = (SimpleExpression) iterator
@@ -56,6 +72,9 @@ public abstract class SQLInjectionValidation {
 		} catch (JSQLParserException e) {
 			logger.info("ERROR - INVALID QUERY ", e);
 			encodedResult = "VALIDATION_FAILURE - CHECK LOGS";
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 		return encodedResult;
@@ -68,6 +87,8 @@ public abstract class SQLInjectionValidation {
 		String encodedResult = s;
 
 		try {
+			loadRegexProperties();
+			encodedResult = removeCommentsFromString(encodedResult);
 			List<SimpleExpression> items = SQLParser.getQueryValues(s);
 			for (Iterator iterator = items.iterator(); iterator.hasNext();) {
 				SimpleExpression simpleExpression = (SimpleExpression) iterator
@@ -98,6 +119,9 @@ public abstract class SQLInjectionValidation {
 		} catch (JSQLParserException e) {
 			logger.info("ERROR - INVALID QUERY ", e);
 			encodedResult = "INVALID QUERY - CHECK LOGS";
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 		return encodedResult;
@@ -135,6 +159,15 @@ public abstract class SQLInjectionValidation {
 			return resultBool;
 		}
 
+	}
+	
+	public static String removeCommentsFromString(String input){
+		String safeString = "";
+		safeString = input.replaceAll(regexProperties.getProperty("ALL_COMMENTS"), " ");
+		
+		//Remove all started comments for "/*" ....
+		safeString = input.replaceAll(regexProperties.getProperty("START_COMMENTS"), " ");
+		return safeString;
 	}
 
 }
