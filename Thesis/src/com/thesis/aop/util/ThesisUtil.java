@@ -30,7 +30,7 @@ public class ThesisUtil {
 
 	public static byte[] doXSSFix(byte[] s, String solution)
 			throws ValidationException, IntrusionException, JSQLParserException {
-		String result = getSolution(s.toString(), solution);
+		String result = getSolution(new String(s), solution);
 		return result.getBytes();
 	}
 
