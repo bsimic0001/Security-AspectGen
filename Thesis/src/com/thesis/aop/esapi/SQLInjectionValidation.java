@@ -72,10 +72,8 @@ public abstract class SQLInjectionValidation {
 			}
 		} catch (JSQLParserException e) {
 			logger.info("ERROR - INVALID QUERY ", e);
-			encodedResult = "VALIDATION_FAILURE - CHECK LOGS";
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.info("ERROR - IO Exception", e);
 		}
 
 		return encodedResult;
@@ -121,10 +119,8 @@ public abstract class SQLInjectionValidation {
 			}
 		} catch (JSQLParserException e) {
 			logger.info("ERROR - INVALID QUERY ", e);
-			encodedResult = "INVALID QUERY - CHECK LOGS";
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.info("ERROR - IO Exception", e);
 		}
 
 		return encodedResult;
@@ -168,7 +164,6 @@ public abstract class SQLInjectionValidation {
 		Pattern regexp = Pattern.compile(regex, Pattern.DOTALL | Pattern.MULTILINE);
 	    Matcher regexMatcher = regexp.matcher(input);
 	    while (regexMatcher.find()) {
-	        //System.out.println("****-" + regexMatcher.group() + "-*****");
 	    	logger.info("Removing comment from query: \"" + regexMatcher.group() + "\" from \"" + input + "\"");
 	    	input = input.replace(regexMatcher.group(), " ");
 	    } 
