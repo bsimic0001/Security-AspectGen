@@ -71,6 +71,9 @@ public class ThesisUtilTests {
 
 		ArrayList<TestBean> tests = getSQLTestQueries();
 		int testNumber = 0;
+		String mysqlLengths = "";
+		String oracleLengths = "";
+		for(int i = 0; i < 50; i++){
 		for (Iterator iterator = tests.iterator(); iterator.hasNext();) {
 			TestBean testBean = (TestBean) iterator.next();
 
@@ -93,9 +96,18 @@ public class ThesisUtilTests {
 			}
 			logger.info("Test took: " + t.getElapsedTime() + " ms");
 			logger.info("testDoSQLInjectionFix Test Finished");
+			if(testBean.getFix().equals(ThesisUtil.sqlInjectionFixOptions[0]))
+				mysqlLengths = mysqlLengths + t.getElapsedTime() + ",";
+			else{
+				oracleLengths = oracleLengths + t.getElapsedTime() + ",";
+			}
+			
 			logger.info("-----------------------------------------------------------------------");
 			testNumber++;
 		}
+		}
+		logger.info("MySQL: " + mysqlLengths);
+		logger.info("Oracle: " + oracleLengths);
 	}
 
 	public ArrayList<TestBean> getSQLTestQueries() throws IOException {
