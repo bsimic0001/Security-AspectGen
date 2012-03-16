@@ -24,7 +24,7 @@ public class XSSValidationTestCase {
 	public void testEscapeCustomString() {
 		String returnString = "";
 		try {
-			returnString = XSSValidation.escapeCustomString("abc123def456ghij-", "[a-z]+", 300);
+			returnString = XSSValidation.escapeCustomString("abc", XSSValidation.REGEX_ALPHA, 300);
 		} catch (IntrusionException e) {
 			// TODO Auto-generated catch block
 			logger.info("XSS Test FAIL - EscapeCustomString " + returnString);

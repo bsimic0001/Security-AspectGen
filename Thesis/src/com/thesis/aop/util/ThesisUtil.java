@@ -91,14 +91,14 @@ public class ThesisUtil {
 			} else if (solution.equals(xssFixOptions[11])) {
 				result = XSSValidation.escapeCustomString(s,
 						XSSValidation.REGEX_SSN, 12);
+			} else if (solution.equals(xssFixOptions[12])) {
+				return result;
 			} else if (solution.equals(sqlInjectionFixOptions[0])) {
 				result = SQLInjectionValidation.escapeMySQL(s, logger);
 			} else if (solution.equals(sqlInjectionFixOptions[1])) {
 				result = SQLInjectionValidation.escapeOracle(s, logger);
-			}
-			else{
-				result = XSSValidation.escapeCustomString(s,
-						solution, 500);
+			} else {
+				result = XSSValidation.escapeCustomString(s, solution, 500);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

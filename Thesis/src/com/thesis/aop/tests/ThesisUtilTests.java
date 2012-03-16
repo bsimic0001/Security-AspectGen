@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -31,21 +33,49 @@ public class ThesisUtilTests {
 	}
 
 	@Test
-	public void testDoXSSFixStringString() {
-		t.start();
-		try {
-			String result = ThesisUtil.doXSSFix(xssTest, "[a-z]+");
-			logger.info("ThesisUtil Success: result is - " + result);
-		} catch (Exception e) {
-			logger.info("ThesisUtil FAIL - testDoXSSFixStringString");
-			logger.info("Exception Stack: ", e);
-			fail("testDoXSSFixStringString FAIL");
-		} finally {
-			t.stop();
+	public void testDoXSSFixStringString() throws IOException {
+		
+		ArrayList<TestBean> tests = getTestData("XSSTests.data", ThesisUtil.xssFixOptions, 2);
+		int testNumber = 0;
+		HashMap<String, String>	testLengths = new HashMap<String, String>();
+		
+		for (Iterator iterator = tests.iterator(); iterator.hasNext();) {
+			TestBean testBean = (TestBean) iterator.next();
+		
+			logger.info("STARTING XSS TEST #" + testNumber);
+			logger.info("Input: " + testBean.getInput());
+			logger.info("FIX: " + testBean.getFix());
+			logger.info("");
+			
+			t.start();
+			try {
+				String result = ThesisUtil.doXSSFix(testBean.getInput(), testBean.getFix());
+				logger.info("ThesisUtil Success: result is - " + result);
+			} catch (Exception e) {
+				logger.info("ThesisUtil FAIL - testDoXSSFixStringString");
+				logger.info("Exception Stack: ", e);
+				fail("testDoXSSFixStringString FAIL");
+			} finally {
+				t.stop();
+			}
+			logger.info("Test took: " + t.getElapsedTime() + " ms");
+			logger.info("testDoXSSFixStringString Test Finished");
+			
+			if(testLengths.containsKey(testBean.getFix())){
+				testLengths.put(testBean.getFix(), testLengths.get(testBean.getFix()) + "," + t.getElapsedTime());
+			}
+			else{
+				testLengths.put(testBean.getFix(), t.getElapsedTime() + "");
+			}
+			logger.info("-----------------------------------------------------------------------");
+			testNumber++;
 		}
-		logger.info("Test took: " + t.getElapsedTime() + " ms");
-		logger.info("testDoXSSFixStringString Test Finished");
-		logger.info("-----------------------------------------------------------------------");
+		logger.info("XSS Test Results:");
+		for(Map.Entry<String, String> entry : testLengths.entrySet()){
+			String key = entry.getKey();
+			String value = (String) entry.getValue();
+			logger.info(key + ": " + value);
+		}
 	}
 
 	@Test
@@ -69,7 +99,7 @@ public class ThesisUtilTests {
 	@Test
 	public void testDoSQLInjectionFix() throws IOException {
 
-		ArrayList<TestBean> tests = getSQLTestQueries();
+		ArrayList<TestBean> tests = getTestData("SQLITests.data", ThesisUtil.sqlInjectionFixOptions, 0);
 		int testNumber = 0;
 		String mysqlLengths = "";
 		String oracleLengths = "";
@@ -109,20 +139,21 @@ public class ThesisUtilTests {
 		logger.info("MySQL: " + mysqlLengths);
 		logger.info("Oracle: " + oracleLengths);
 	}
-
-	public ArrayList<TestBean> getSQLTestQueries() throws IOException {
+	
+	public ArrayList<TestBean> getTestData(String fileName, String[] fixOptions, int lessValue) throws IOException {
 
 		ArrayList<TestBean> tests = new ArrayList<TestBean>();
 
 		InputStream testStream = this.getClass().getResourceAsStream(
-				"/tests/SQLITests.data");
+				"/tests/" + fileName);
 		InputStreamReader is = new InputStreamReader(testStream);
 		BufferedReader br = new BufferedReader(is);
 		String read = br.readLine();
 
 		while (read != null) {
-			tests.add(new TestBean(read, ThesisUtil.sqlInjectionFixOptions[0]));
-			tests.add(new TestBean(read, ThesisUtil.sqlInjectionFixOptions[1]));
+			for (int i = 0; i < fixOptions.length - lessValue; i++) {
+				tests.add(new TestBean(read, fixOptions[i]));
+			}
 			read = br.readLine();
 		}
 

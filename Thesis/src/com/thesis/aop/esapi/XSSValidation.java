@@ -3,11 +3,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.owasp.esapi.ESAPI;
+import org.owasp.esapi.ValidationRule;
+import org.owasp.esapi.Validator;
 import org.owasp.esapi.codecs.MySQLCodec;
 import org.owasp.esapi.codecs.OracleCodec;
 import org.owasp.esapi.errors.EncodingException;
 import org.owasp.esapi.errors.IntrusionException;
 import org.owasp.esapi.errors.ValidationException;
+import org.owasp.esapi.reference.DefaultSecurityConfiguration;
 
 public abstract class XSSValidation {
 
@@ -22,13 +25,16 @@ public abstract class XSSValidation {
 	public XSSValidation(){}
 	
 	public static String escapeCustomString(String s, String regex, int maxLength){
-		Pattern p = Pattern.compile(regex);
 		
+		Pattern p = ESAPI.securityConfiguration().getValidationPattern(regex);
+		
+		if(p == null)
+			p = Pattern.compile(regex);
+				
 		//Sending pattern directly.
 		try {
 			return ESAPI.validator().getValidInput("CUSTOM_STRING_ESCAPE", s, p, maxLength, false, false);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			String resultString = "";
 			Matcher m = p.matcher(s);
