@@ -12,16 +12,23 @@ import com.thesis.aop.util.StopWatch;
 public class SQLInjectionValidationTestCase {
 
 	final Logger logger;
-	
-	
-	//String query = "SELECT field1, field2, field3 FROM Users WHERE Id='1' AND LENGTH(username)=N AND '1' = '1'";
-	//String query = "SELECT field1, field2, field3 FROM Users WHERE Id='1' AND LENGTH(username)=N OR 1=1";
-	//String query = "SELECT field1, field2, field3 FROM Users WHERE Id='1' OR 1=1 -- OR name = 'bojan%4#@' AND LENGTH(username)=N OR 2.3 > 2";
-	String query = "SELECT field1, field2, field3 FROM Users WHERE Id='1' /* OR 1=1 OR name = 'bojan%4#@' AND LENGTH(username)=N OR 2.3 > 2";
 
-	//String query = "SELECT field1, field2, field3 FROM Users WHERE Id='1' AND ASCII(SUBSTRING(username,1,1))=97 AND '1'='1'";
-	//String query = "SELECT * FROM Users WHERE ((Username='1' or '1' = '1'))/*') AND (Password=MD5('$password')))";
-	
+	// String query =
+	// "SELECT field1, field2, field3 FROM Users WHERE Id='1' AND LENGTH(username)=N AND '1' = '1'";
+	// String query =
+	// "SELECT field1, field2, field3 FROM Users WHERE Id='1' AND LENGTH(username)=N OR 1=1";
+	// String query =
+	// "SELECT field1, field2, field3 FROM Users WHERE Id='1' OR 1=1 -- OR name = 'bojan%4#@' AND LENGTH(username)=N OR 2.3 > 2";
+	// String query =
+	// "SELECT field1, field2, field3 FROM Users WHERE Id='1' /* OR 1=1 OR name = 'bojan%4#@' AND LENGTH(username)=N OR 2.3 > 2";
+	// String query =
+	// "INSERT INTO orders (customer,day_of_order,product, quantity) VALUES('Ti&%$#<<<<=>=zag','8/1/08','Stapler',1);";
+	// String query =
+	// "SELECT field1, field2, field3 FROM Users WHERE Id='1' AND ASCII(SUBSTRING(username,1,1))=97 AND '1'='1'";
+	// String query =
+	// "SELECT * FROM Users WHERE ((Username='1' or '1' = '1'))/*') AND (Password=MD5('$password')))";
+	String query = "INSERT INTO COMMENTS VALUES(123,''); DELETE FROM users; -- ');";
+
 	public SQLInjectionValidationTestCase() {
 		PropertyConfigurator.configure("log4j.properties");
 		logger = Logger.getLogger("testLogger");
@@ -37,6 +44,8 @@ public class SQLInjectionValidationTestCase {
 			String result = SQLInjectionValidation.escapeMySQL(query, logger);
 
 			if (result.contains("VALIDATION_FAILURE")) {
+				logger.info(result);
+			} else if (result.contains("PARSE_ERROR")) {
 				logger.info(result);
 			} else
 				logger.info("SUCCESS: " + result);
@@ -65,13 +74,13 @@ public class SQLInjectionValidationTestCase {
 
 			if (result.contains("VALIDATION_FAILURE")) {
 				logger.info(result);
-				//fail(result);
+			} else if (result.contains("PARSE_ERROR")) {
+				logger.info(result);
 			} else
 				logger.info("SUCCESS: " + result);
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			//logger.info("Exception in Oracle Test", e);
 			logger.info("Exception in Oracle Test - FAILURE");
 			fail("Oracle Test Failed - Exception Thrown");
 		} finally {

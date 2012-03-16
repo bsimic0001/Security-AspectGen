@@ -1,11 +1,19 @@
 package com.thesis.aop.tests;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.junit.Test;
 
+import com.thesis.aop.logic.beans.TestBean;
 import com.thesis.aop.util.StopWatch;
 import com.thesis.aop.util.ThesisUtil;
 
@@ -13,7 +21,7 @@ public class ThesisUtilTests {
 
 	public String xssTest = "abc123";
 	public String sqlTest = "SELECT field1, field2, field3 FROM Users WHERE Id='1' AND LENGTH(username)=N OR 2.3 > 12";
-	final Logger logger;
+	public final Logger logger;
 	StopWatch t;
 
 	public ThesisUtilTests() {
@@ -59,22 +67,55 @@ public class ThesisUtilTests {
 	}
 
 	@Test
-	public void testDoSQLInjectionFix() {
-		t.start();
-		try {
-			String result = ThesisUtil.doSQLInjectionFix(logger, sqlTest,
-					"SQL-ENCODE-MYSQL");
-			logger.info("ThesisUtil Success: result is - " + result);
-		} catch (Exception e) {
-			logger.info("ThesisUtil FAIL - testDoSQLInjectionFix");
-			logger.info("Exception Stack: ", e);
-			fail("testDoSQLInjectionFix FAIL");
-		} finally {
-			t.stop();
+	public void testDoSQLInjectionFix() throws IOException {
+
+		ArrayList<TestBean> tests = getSQLTestQueries();
+		int testNumber = 0;
+		for (Iterator iterator = tests.iterator(); iterator.hasNext();) {
+			TestBean testBean = (TestBean) iterator.next();
+
+			logger.info("STARTING SQL TEST #" + testNumber);
+			logger.info("Input: " + testBean.getInput());
+			logger.info("FIX: " + testBean.getFix());
+			logger.info("");
+
+			t.start();
+			try {
+				String result = ThesisUtil.doSQLInjectionFix(logger,
+						testBean.getInput(), testBean.getFix());
+				logger.info("ThesisUtil Success: result is - " + result);
+			} catch (Exception e) {
+				logger.info("ThesisUtil FAIL - testDoSQLInjectionFix");
+				logger.info("Exception Info: " + e.getCause());
+				fail("testDoSQLInjectionFix FAIL");
+			} finally {
+				t.stop();
+			}
+			logger.info("Test took: " + t.getElapsedTime() + " ms");
+			logger.info("testDoSQLInjectionFix Test Finished");
+			logger.info("-----------------------------------------------------------------------");
+			testNumber++;
 		}
-		logger.info("Test took: " + t.getElapsedTime() + " ms");
-		logger.info("testDoSQLInjectionFix Test Finished");
-		logger.info("-----------------------------------------------------------------------");
+	}
+
+	public ArrayList<TestBean> getSQLTestQueries() throws IOException {
+
+		ArrayList<TestBean> tests = new ArrayList<TestBean>();
+
+		InputStream testStream = this.getClass().getResourceAsStream(
+				"/tests/SQLITests.data");
+		InputStreamReader is = new InputStreamReader(testStream);
+		BufferedReader br = new BufferedReader(is);
+		String read = br.readLine();
+
+		while (read != null) {
+			tests.add(new TestBean(read, ThesisUtil.sqlInjectionFixOptions[0]));
+			tests.add(new TestBean(read, ThesisUtil.sqlInjectionFixOptions[1]));
+			read = br.readLine();
+		}
+
+		return tests;
+
 	}
 
 }

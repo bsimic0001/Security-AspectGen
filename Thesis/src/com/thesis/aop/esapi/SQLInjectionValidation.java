@@ -71,9 +71,10 @@ public abstract class SQLInjectionValidation {
 				}
 			}
 		} catch (JSQLParserException e) {
-			logger.info("ERROR - INVALID QUERY ", e);
+			logger.info("ERROR - INVALID QUERY: " + e.getCause());
+			encodedResult = "PARSE_ERROR -" + encodedResult;
 		} catch (IOException e) {
-			logger.info("ERROR - IO Exception", e);
+			logger.info("ERROR - IO Exception: " + e.getCause());
 		}
 
 		return encodedResult;
@@ -118,9 +119,10 @@ public abstract class SQLInjectionValidation {
 				}
 			}
 		} catch (JSQLParserException e) {
-			logger.info("ERROR - INVALID QUERY ", e);
+			logger.info("ERROR - INVALID QUERY: " + e.getCause());
+			encodedResult = "PARSE_ERROR -" + encodedResult;
 		} catch (IOException e) {
-			logger.info("ERROR - IO Exception", e);
+			logger.info("ERROR - IO Exception :" + e.getCause());
 		}
 
 		return encodedResult;
@@ -138,8 +140,8 @@ public abstract class SQLInjectionValidation {
 				result = engine.eval("'" + exp.getColumnName() + "'" + "=="
 						+ "'" + exp.getValue() + "'");
 			} else if (exp.getOp().equals("<>")) {
-				result = engine.eval(exp.getColumnName() + "!="
-						+ exp.getValue());
+				result = engine.eval("'" + exp.getColumnName() + "'" + "!="
+						+ "'" + exp.getValue() + "'");
 			} else {
 				result = engine.eval(exp.getColumnName() + exp.getOp()
 						+ exp.getValue());
