@@ -5,6 +5,8 @@ import java.io.InputStream;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -24,9 +26,6 @@ import com.thesis.aop.sqlinjection.parser.SimpleExpression;
 
 public abstract class SQLInjectionValidation {
 	
-	private static String commentRegex = "";
-	private static String commentStartRegex = "";
-	
 	private static Properties regexProperties;
 	
 	public static void loadRegexProperties() throws IOException{
@@ -41,8 +40,10 @@ public abstract class SQLInjectionValidation {
 		String encodedResult = s;
 		try {
 			loadRegexProperties();
-			encodedResult = removeCommentsFromString(encodedResult);
-			List<SimpleExpression> items = SQLParser.getQueryValues(s);
+			encodedResult = removeCommentsFromString(regexProperties.getProperty("ALL_COMMENTS"), encodedResult, logger);
+			encodedResult = removeCommentsFromString(regexProperties.getProperty("START_COMMENTS"), encodedResult, logger);
+
+			List<SimpleExpression> items = SQLParser.getQueryValues(encodedResult);
 			for (Iterator iterator = items.iterator(); iterator.hasNext();) {
 				SimpleExpression simpleExpression = (SimpleExpression) iterator
 						.next();
@@ -88,8 +89,10 @@ public abstract class SQLInjectionValidation {
 
 		try {
 			loadRegexProperties();
-			encodedResult = removeCommentsFromString(encodedResult);
-			List<SimpleExpression> items = SQLParser.getQueryValues(s);
+			encodedResult = removeCommentsFromString(regexProperties.getProperty("ALL_COMMENTS"), encodedResult, logger);
+			encodedResult = removeCommentsFromString(regexProperties.getProperty("START_COMMENTS"), encodedResult, logger);
+
+			List<SimpleExpression> items = SQLParser.getQueryValues(encodedResult);
 			for (Iterator iterator = items.iterator(); iterator.hasNext();) {
 				SimpleExpression simpleExpression = (SimpleExpression) iterator
 						.next();
@@ -161,13 +164,15 @@ public abstract class SQLInjectionValidation {
 
 	}
 	
-	public static String removeCommentsFromString(String input){
-		String safeString = "";
-		safeString = input.replaceAll(regexProperties.getProperty("ALL_COMMENTS"), " ");
-		
-		//Remove all started comments for "/*" ....
-		safeString = input.replaceAll(regexProperties.getProperty("START_COMMENTS"), " ");
-		return safeString;
+	public static String removeCommentsFromString(String regex, String input, Logger logger){
+		Pattern regexp = Pattern.compile(regex, Pattern.DOTALL | Pattern.MULTILINE);
+	    Matcher regexMatcher = regexp.matcher(input);
+	    while (regexMatcher.find()) {
+	        //System.out.println("****-" + regexMatcher.group() + "-*****");
+	    	logger.info("Removing comment from query: \"" + regexMatcher.group() + "\" from \"" + input + "\"");
+	    	input = input.replace(regexMatcher.group(), " ");
+	    } 
+	    return input;
 	}
 
 }
