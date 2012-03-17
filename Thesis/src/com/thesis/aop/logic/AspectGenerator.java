@@ -97,17 +97,18 @@ public class AspectGenerator {
 		for (int i = 0; i < issues.size(); i++) {
 			Issue tempIssue = issues.get(i);
 			tempIssue.setFilePath(tempIssue.getFilePath().replaceAll(".java", ""));
-			if(!withinString.contains(tempIssue.getFilePath().replaceAll("/", "."))){
+			if(!withinString.contains(tempIssue.getFileName().replaceAll(".java", ""))){
 				withinString += "within("
 					+ "*.." + tempIssue.getFileName().replaceAll(".java", "") + ")";
 				j++;
 				//withinString += "within("
 				//		+ tempIssue.getFilePath().replaceAll("/", ".") + ")";
-				if (j != uniqueFiles.size())
-					withinString += " || \n\t\t\t";
+				//if (j != uniqueFiles.size()-1)
+				//	withinString += " || \n\t\t\t";
 				
 			}
 		}
+		withinString = withinString.replaceAll("\\)within", ") || \n\t\t\twithin");
 
 		return withinString;
 	}
