@@ -34,48 +34,54 @@ public class ThesisUtilTests {
 
 	@Test
 	public void testDoXSSFixStringString() throws IOException {
-		
-		ArrayList<TestBean> tests = getTestData("XSSTests.data", ThesisUtil.xssFixOptions, 2);
+
+		ArrayList<TestBean> tests = getTestData("XSSTests.data",
+				ThesisUtil.xssFixOptions, 2);
 		int testNumber = 0;
-		HashMap<String, String>	testLengths = new HashMap<String, String>();
-		
-		for (Iterator iterator = tests.iterator(); iterator.hasNext();) {
-			TestBean testBean = (TestBean) iterator.next();
-		
-			logger.info("STARTING XSS TEST #" + testNumber);
-			logger.info("Input: " + testBean.getInput());
-			logger.info("FIX: " + testBean.getFix());
-			logger.info("");
-			
-			t.start();
-			try {
-				String result = ThesisUtil.doXSSFix(testBean.getInput(), testBean.getFix());
-				logger.info("ThesisUtil Success: result is - " + result);
-			} catch (Exception e) {
-				logger.info("ThesisUtil FAIL - testDoXSSFixStringString");
-				logger.info("Exception Stack: ", e);
-				fail("testDoXSSFixStringString FAIL");
-			} finally {
-				t.stop();
+		HashMap<String, String> testLengths = new HashMap<String, String>();
+		for (int i = 0; i < 50; i++) {
+			for (Iterator iterator = tests.iterator(); iterator.hasNext();) {
+				TestBean testBean = (TestBean) iterator.next();
+
+				logger.info("STARTING XSS TEST #" + testNumber);
+				logger.info("Input: " + testBean.getInput());
+				logger.info("FIX: " + testBean.getFix());
+				logger.info("");
+
+				t.start();
+				try {
+					String result = ThesisUtil.doXSSFix(testBean.getInput(),
+							testBean.getFix());
+					logger.info("ThesisUtil Success: result is - " + result);
+				} catch (Exception e) {
+					logger.info("ThesisUtil FAIL - testDoXSSFixStringString");
+					logger.info("Exception Stack: ", e);
+					fail("testDoXSSFixStringString FAIL");
+				} finally {
+					t.stop();
+				}
+				logger.info("Test took: " + t.getElapsedTime() + " ms");
+				logger.info("testDoXSSFixStringString Test Finished");
+
+				if (testLengths.containsKey(testBean.getFix())) {
+					testLengths.put(
+							testBean.getFix(),
+							testLengths.get(testBean.getFix()) + ","
+									+ t.getElapsedTime());
+				} else {
+					testLengths.put(testBean.getFix(), t.getElapsedTime() + "");
+				}
+				logger.info("-----------------------------------------------------------------------");
+				testNumber++;
 			}
-			logger.info("Test took: " + t.getElapsedTime() + " ms");
-			logger.info("testDoXSSFixStringString Test Finished");
-			
-			if(testLengths.containsKey(testBean.getFix())){
-				testLengths.put(testBean.getFix(), testLengths.get(testBean.getFix()) + "," + t.getElapsedTime());
-			}
-			else{
-				testLengths.put(testBean.getFix(), t.getElapsedTime() + "");
-			}
-			logger.info("-----------------------------------------------------------------------");
-			testNumber++;
 		}
 		logger.info("XSS Test Results:");
-		for(Map.Entry<String, String> entry : testLengths.entrySet()){
+		for (Map.Entry<String, String> entry : testLengths.entrySet()) {
 			String key = entry.getKey();
 			String value = (String) entry.getValue();
 			logger.info(key + ": " + value);
 		}
+
 	}
 
 	@Test
@@ -99,48 +105,51 @@ public class ThesisUtilTests {
 	@Test
 	public void testDoSQLInjectionFix() throws IOException {
 
-		ArrayList<TestBean> tests = getTestData("SQLITests.data", ThesisUtil.sqlInjectionFixOptions, 0);
+		ArrayList<TestBean> tests = getTestData("SQLITests.data",
+				ThesisUtil.sqlInjectionFixOptions, 0);
 		int testNumber = 0;
 		String mysqlLengths = "";
 		String oracleLengths = "";
-		for(int i = 0; i < 50; i++){
-		for (Iterator iterator = tests.iterator(); iterator.hasNext();) {
-			TestBean testBean = (TestBean) iterator.next();
+		for (int i = 0; i < 50; i++) {
+			for (Iterator iterator = tests.iterator(); iterator.hasNext();) {
+				TestBean testBean = (TestBean) iterator.next();
 
-			logger.info("STARTING SQL TEST #" + testNumber);
-			logger.info("Input: " + testBean.getInput());
-			logger.info("FIX: " + testBean.getFix());
-			logger.info("");
+				logger.info("STARTING SQL TEST #" + testNumber);
+				logger.info("Input: " + testBean.getInput());
+				logger.info("FIX: " + testBean.getFix());
+				logger.info("");
 
-			t.start();
-			try {
-				String result = ThesisUtil.doSQLInjectionFix(logger,
-						testBean.getInput(), testBean.getFix());
-				logger.info("ThesisUtil Success: result is - " + result);
-			} catch (Exception e) {
-				logger.info("ThesisUtil FAIL - testDoSQLInjectionFix");
-				logger.info("Exception Info: " + e.getCause());
-				fail("testDoSQLInjectionFix FAIL");
-			} finally {
-				t.stop();
+				t.start();
+				try {
+					String result = ThesisUtil.doSQLInjectionFix(logger,
+							testBean.getInput(), testBean.getFix());
+					logger.info("ThesisUtil Success: result is - " + result);
+				} catch (Exception e) {
+					logger.info("ThesisUtil FAIL - testDoSQLInjectionFix");
+					logger.info("Exception Info: " + e.getCause());
+					fail("testDoSQLInjectionFix FAIL");
+				} finally {
+					t.stop();
+				}
+				logger.info("Test took: " + t.getElapsedTime() + " ms");
+				logger.info("testDoSQLInjectionFix Test Finished");
+				if (testBean.getFix().equals(
+						ThesisUtil.sqlInjectionFixOptions[0]))
+					mysqlLengths = mysqlLengths + t.getElapsedTime() + ",";
+				else {
+					oracleLengths = oracleLengths + t.getElapsedTime() + ",";
+				}
+
+				logger.info("-----------------------------------------------------------------------");
+				testNumber++;
 			}
-			logger.info("Test took: " + t.getElapsedTime() + " ms");
-			logger.info("testDoSQLInjectionFix Test Finished");
-			if(testBean.getFix().equals(ThesisUtil.sqlInjectionFixOptions[0]))
-				mysqlLengths = mysqlLengths + t.getElapsedTime() + ",";
-			else{
-				oracleLengths = oracleLengths + t.getElapsedTime() + ",";
-			}
-			
-			logger.info("-----------------------------------------------------------------------");
-			testNumber++;
-		}
 		}
 		logger.info("MySQL: " + mysqlLengths);
 		logger.info("Oracle: " + oracleLengths);
 	}
-	
-	public ArrayList<TestBean> getTestData(String fileName, String[] fixOptions, int lessValue) throws IOException {
+
+	public ArrayList<TestBean> getTestData(String fileName,
+			String[] fixOptions, int lessValue) throws IOException {
 
 		ArrayList<TestBean> tests = new ArrayList<TestBean>();
 
