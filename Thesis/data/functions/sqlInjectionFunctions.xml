@@ -12,6 +12,12 @@
 		<interceptParamType>String</interceptParamType>
 	</function>
 	
+	<function name="executeQueryFunction">
+		<methodName>executeQuery</methodName>
+		<interceptParam>1</interceptParam>
+		<interceptParamType>String</interceptParamType>
+	</function>
+	
 	<function name="createQueryFunction">
 		<methodName>createQuery</methodName>
 		<interceptParam>1</interceptParam>
