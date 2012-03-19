@@ -56,7 +56,7 @@ public abstract class SQLInjectionValidation {
 					String regex = "(.{0,1}" + simpleExpression.columnName
 							+ ".{0,1}\\s{0,1000}" + simpleExpression.op + "\\s{0,1000}.{0,1}"
 							+ simpleExpression.value + ".{0,1})";
-					encodedResult = encodedResult.replaceAll(regex, " x=y");
+					encodedResult = encodedResult.replaceAll(regex, " 1=2");
 				} else if (simpleExpression.valueType == CONSTANT.VALUE_STRING) {
 					encodedResult = encodedResult.replace(
 							"\"" + simpleExpression.value + "\"",
@@ -104,7 +104,7 @@ public abstract class SQLInjectionValidation {
 					String regex = "(.{0,1}" + simpleExpression.columnName
 							+ ".{0,1}\\s{0,1000}" + simpleExpression.op + "\\s{0,1000}.{0,1}"
 							+ simpleExpression.value + ".{0,1})";
-					encodedResult = encodedResult.replaceAll(regex, " x=y");
+					encodedResult = encodedResult.replaceAll(regex, " 1=2");
 				} else if (simpleExpression.valueType == CONSTANT.VALUE_STRING) {
 					encodedResult = encodedResult.replace(
 							"\"" + simpleExpression.value + "\"",
