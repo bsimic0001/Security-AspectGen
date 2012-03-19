@@ -9,7 +9,7 @@
 				thisJoinPoint.getSourceLocation().getLine())){
 				
 				try{
-					proceed(ThesisUtil.doXSSFix(<pointcut_vars>, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+					proceed(ThesisUtil.doXSSFix(<result_var_name>, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
 						thisJoinPoint.getSourceLocation().getLine())));	
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
@@ -17,7 +17,7 @@
 				}
 			} 
 			else{
-				proceed(<pointcut_vars>);
+				proceed(<result_string>);
 			}
 			watch.stop();
 			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
