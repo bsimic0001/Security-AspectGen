@@ -8,13 +8,13 @@
 			if(fixes.containsKey(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
 				thisJoinPoint.getSourceLocation().getLine())){
 				try{
-					String result = ThesisUtil.doSQLInjectionFix(logger, <pointcut_vars>, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+					String result = ThesisUtil.doSQLInjectionFix(logger, <result_var_name>, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
 						thisJoinPoint.getSourceLocation().getLine()));
 					if(result.contains("VALIDATION_FAILURE")){
 						logger.info(result);
 					}
 					else{
-						proceed(result);	
+						proceed(<result_string>);	
 					}				
 				} catch (Exception e) {
 					// TODO Auto-generated catch block

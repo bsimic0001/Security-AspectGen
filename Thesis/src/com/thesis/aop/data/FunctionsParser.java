@@ -37,6 +37,8 @@ public class FunctionsParser {
 				boolean newMethodName = false;
 				boolean newInterceptParam = false;
 				boolean newInterceptParamType = false;
+				boolean newParamNumber = false;
+				//boolean newParam = true;
 
 				Function tempFunction;
 
@@ -59,6 +61,19 @@ public class FunctionsParser {
 					if(qName.equalsIgnoreCase("INTERCEPTPARAMTYPE")){
 						newInterceptParamType = true;
 					}
+					if(qName.equalsIgnoreCase("TOTALPARAMNUMBER")){
+						newParamNumber = true;
+					}
+					if(qName.equalsIgnoreCase("PARAM")){
+						//newParam = true;
+						
+						String name = attributes.getValue("name");
+						String type = attributes.getValue("type");
+						int location = (new Integer(attributes.getValue("location")).intValue());
+						boolean result = (new Boolean(attributes.getValue("result")));
+						Param p = new Param(name, type, location, result);
+						tempFunction.addToParams(p);
+					}				
 				}
 
 				public void endElement(String uri, String localName,
@@ -87,6 +102,11 @@ public class FunctionsParser {
 					if(newInterceptParamType){
 						tempFunction.setInterceptParamType(new String(ch, start, length));
 						newInterceptParamType = false;
+					}
+					if(newParamNumber){
+						Integer i = new Integer(new String(ch, start, length));
+						tempFunction.setTotalParamNumber(i.intValue());
+						newParamNumber = false;
 					}
 				}
 

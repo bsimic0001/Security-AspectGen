@@ -2,31 +2,53 @@
 <functions type="xml">
 	<function name="createSQLQueryFunction">
 		<methodName>createSQLQuery</methodName>
+		<param type="String" name="param1" location="1" result="true" />
 		<interceptParam>1</interceptParam>
 		<interceptParamType>String</interceptParamType>
 	</function>
 
 	<function name="executeUpdateFunction">
 		<methodName>executeUpdate</methodName>
+		<param type="String" name="param1" location="1" result="true" />
 		<interceptParam>1</interceptParam>
 		<interceptParamType>String</interceptParamType>
 	</function>
 	
 	<function name="executeQueryFunction">
 		<methodName>executeQuery</methodName>
+		<param type="String" name="param1" location="1" result="true" />
 		<interceptParam>1</interceptParam>
 		<interceptParamType>String</interceptParamType>
 	</function>
 	
 	<function name="createQueryFunction">
 		<methodName>createQuery</methodName>
+		<param type="String" name="param1" location="1" result="true" />
 		<interceptParam>1</interceptParam>
 		<interceptParamType>String</interceptParamType>
 	</function>
 
 	<function name="prepareStatementFunction">
 		<methodName>prepareStatement</methodName>
+		<param type="String" name="param1" location="1" result="true"/>
 		<interceptParam>1</interceptParam>
 		<interceptParamType>String</interceptParamType>
 	</function>
+	
+	<function name="prepareStatementFunctionMultiParam">
+		<methodName>prepareStatement</methodName>
+		<param type="String" name="param1" location="1" result="true"/>
+		<param type="int" name="param2" location="2" result="false"/>
+		<param type="int" name="param3" location="3" result="false"/>
+		<interceptParam>1</interceptParam>
+		<interceptParamType>String</interceptParamType>
+	</function>
+	
+	<function name="generalExecuteFunction">
+		<methodName>execute</methodName>
+		<param type="String" name="param1" location="1" result="true"/>
+		<interceptParam>1</interceptParam>
+		<interceptParamType>String</interceptParamType>
+	</function>
+	
 </functions>

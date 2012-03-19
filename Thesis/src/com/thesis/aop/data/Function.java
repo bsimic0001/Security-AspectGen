@@ -1,10 +1,15 @@
 package com.thesis.aop.data;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 public class Function {
 	public String name;
 	public String methodName;
 	public int interceptParam;
 	public String interceptParamType;
+	public int totalParamNumber;
+	public ArrayList<Param> paramList = new ArrayList<Param>();
 	
 	public Function(){}
 	
@@ -48,5 +53,35 @@ public class Function {
 	public void setInterceptParamType(String interceptorParamType) {
 		this.interceptParamType = interceptorParamType;
 	}
+
+	public int getTotalParamNumber() {
+		return totalParamNumber;
+	}
+
+	public void setTotalParamNumber(int totalParamNumber) {
+		this.totalParamNumber = totalParamNumber;
+	}
+	
+	public ArrayList<Param> getParamList() {
+		return paramList;
+	}
+
+	public void setParamList(ArrayList<Param> paramList) {
+		this.paramList = paramList;
+	}
+
+	public void addToParams(Param p){
+		this.paramList.add(p);
+	}
+	
+	public String getResultVarName(){
+		for (Iterator iterator = paramList.iterator(); iterator.hasNext();) {
+			Param param = (Param) iterator.next();
+			if(param.isResult())
+				return param.getName();
+		}
+		return null;
+	}
+	
 	
 }

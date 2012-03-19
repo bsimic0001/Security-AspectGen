@@ -13,9 +13,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import sun.reflect.ReflectionFactory.GetReflectionFactoryAction;
 
 import com.thesis.aop.data.Function;
 import com.thesis.aop.data.Issue;
+import com.thesis.aop.data.Param;
 import com.thesis.aop.logic.beans.AspectBean;
 
 public class AspectGenerator {
@@ -73,9 +75,14 @@ public class AspectGenerator {
 		advice = fixOptions[answerInteger.intValue()];
 		
 		if(advice.equals("CUSTOM")){
+			
 			System.out.println("");
 			System.out.print("Enter Custom: ");
-			String custom = br.readLine();
+			String custom = "";
+			if(!autoPilot)
+				custom = br.readLine();
+			else
+				custom = "[a-z]+";
 			advice = custom;
 		}
 		
@@ -139,40 +146,98 @@ public class AspectGenerator {
 		newBean.setLineNumberString(lineNumberString);
 		newBean.setAdviceLogic(generateLogicForAdvice(f));
 		newBean.setFunctionType(f.getInterceptParamType());
+		newBean.setResultString(createResultString(f));
+		newBean.setResultVarName(f.getResultVarName());
 		//aspectBeans.add(newBean);
 		return newBean;
 	}
 	
 	public String createPointcutParam(Function f) {
 		String pointcutParam = "";
-		pointcutParam += f.getInterceptParamType() + " param"
-				+ f.getInterceptParam();
+		ArrayList<Param> paramList = f.getParamList();
+		
+		for (Iterator iterator = paramList.iterator(); iterator.hasNext();) {
+			Param param = (Param) iterator.next();
+			pointcutParam = pointcutParam + param.type + " " + param.name;
+			if(iterator.hasNext())
+				pointcutParam = pointcutParam + ", ";
+		}
+		
+		//pointcutParam += f.getInterceptParamType() + " param"
+		//		+ f.getInterceptParam();
 		return pointcutParam;
 	}
 
 	public String createFunctionParams(Function f) {
 		String functionParams = "";
-		for (int i = 0; i < f.getInterceptParam(); i++) {
-			if (i == f.getInterceptParam() - 1)
-				functionParams += f.getInterceptParamType();
-			else
-				functionParams += ".., ";
+		ArrayList<Param> paramList = f.getParamList();
+		
+		for (Iterator iterator = paramList.iterator(); iterator.hasNext();) {
+			Param param = (Param) iterator.next();
+			functionParams = functionParams + param.type;
+			if(iterator.hasNext())
+				functionParams = functionParams + ", ";
 		}
+		
+		//for (int i = 0; i < f.getInterceptParam(); i++) {
+		//	if (i == f.getInterceptParam() - 1)
+		//		functionParams += f.getInterceptParamType();
+		//	else
+		//		functionParams += ".., ";
+		//}
 		return functionParams;
 	}
 
 	public String createArgsString(Function f) {
 		String args = "";
-		args += "param";
-		args += f.getInterceptParam();
+		
+		ArrayList<Param> paramList = f.getParamList();
+		
+		for (Iterator iterator = paramList.iterator(); iterator.hasNext();) {
+			Param param = (Param) iterator.next();
+			args = args + param.name;
+			if(iterator.hasNext())
+				args = args + ", ";
+		}
+		
+		//args += "param";
+		//args += f.getInterceptParam();
 		return args;
 	}
 
 	public String createPointcutVarsString(Function f){
 		String vars = "";
-		vars += "param";
-		vars += f.getInterceptParam();
+		
+		ArrayList<Param> paramList = f.getParamList();
+		
+		for (Iterator iterator = paramList.iterator(); iterator.hasNext();) {
+			Param param = (Param) iterator.next();
+			vars = vars + param.name;
+			if(iterator.hasNext())
+				vars = vars + ", ";
+		}
+		
+		//vars += "param";
+		//vars += f.getInterceptParam();
 		return vars;
+	}
+	
+	public String createResultString(Function f){
+		String resultString = "";
+		
+		ArrayList<Param> paramList = f.getParamList();
+		
+		for (Iterator iterator = paramList.iterator(); iterator.hasNext();) {
+			Param param = (Param) iterator.next();
+			if(param.isResult())
+				resultString = resultString + "result";
+			else
+				resultString = resultString + param.name;
+			if(iterator.hasNext())
+				resultString = resultString + ", ";
+		}
+		
+		return resultString;
 	}
 	
 	public String generateLogicForAdvice(Function f) {
@@ -315,6 +380,10 @@ public class AspectGenerator {
 			returnString = aspectBean.getPointcutVars();
 		} else if (templateVariable.equals(templateVariables[9])) {
 			returnString = aspectBean.getFunctionParams();
+		} else if (templateVariable.equals(templateVariables[10])) {
+			returnString = aspectBean.getResultString();
+		} else if (templateVariable.equals(templateVariables[11])) {
+			returnString = aspectBean.getResultVarName();
 		}
 		return returnString;
 	}	
