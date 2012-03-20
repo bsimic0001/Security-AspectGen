@@ -82,6 +82,14 @@ public class Function {
 		}
 		return null;
 	}
+	public String getResultVarType(){
+		for (Iterator iterator = paramList.iterator(); iterator.hasNext();) {
+			Param param = (Param) iterator.next();
+			if(param.isResult())
+				return param.getType();
+		}
+		return null;
+	}
 	
 	
 }

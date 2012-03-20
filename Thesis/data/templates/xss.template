@@ -9,15 +9,16 @@
 				thisJoinPoint.getSourceLocation().getLine())){
 				
 				try{
-					proceed(ThesisUtil.doXSSFix(<result_var_name>, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
-						thisJoinPoint.getSourceLocation().getLine())));	
+					<result_var_type> result = ThesisUtil.doXSSFix(<result_var_name>, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+						thisJoinPoint.getSourceLocation().getLine()));
+					proceed(<result_string>);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			} 
 			else{
-				proceed(<result_string>);
+				proceed(<pointcut_vars>);
 			}
 			watch.stop();
 			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 

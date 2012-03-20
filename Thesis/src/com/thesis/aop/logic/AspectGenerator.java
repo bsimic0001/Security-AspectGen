@@ -148,6 +148,7 @@ public class AspectGenerator {
 		newBean.setFunctionType(f.getInterceptParamType());
 		newBean.setResultString(createResultString(f));
 		newBean.setResultVarName(f.getResultVarName());
+		newBean.setResultVarType(f.getResultVarType());
 		//aspectBeans.add(newBean);
 		return newBean;
 	}
@@ -384,6 +385,8 @@ public class AspectGenerator {
 			returnString = aspectBean.getResultString();
 		} else if (templateVariable.equals(templateVariables[11])) {
 			returnString = aspectBean.getResultVarName();
+		} else if (templateVariable.equals(templateVariables[12])) {
+			returnString = aspectBean.getResultVarType();
 		}
 		return returnString;
 	}	

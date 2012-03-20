@@ -14,6 +14,7 @@ public class AspectBean {
 	public String functionType;
 	public String resultString;
 	public String resultVarName;
+	public String resultVarType;
 	
 	public AspectBean(){}
 	
@@ -21,7 +22,8 @@ public class AspectBean {
 	public AspectBean(String pointcutName, String pointcutParam,
 			String pointcutVars, String functionName, String functionParams,
 			String withinString, String adviceLogic, String lineNumberString,
-			String argsString, String functionType, String resultString, String resultVarName) {
+			String argsString, String functionType, String resultString, 
+			String resultVarName, String resultVarType) {
 		super();
 		this.pointcutName = pointcutName;
 		this.pointcutParam = pointcutParam;
@@ -35,6 +37,7 @@ public class AspectBean {
 		this.functionType = functionType;
 		this.resultString = resultString;
 		this.resultVarName = resultVarName;
+		this.resultVarType = resultVarType;
 		
 	}
 
@@ -127,7 +130,19 @@ public class AspectBean {
 	public String getResultVarName() {
 		// TODO Auto-generated method stub
 		return resultVarName;
+	}
+
+
+	public String getResultVarType() {
+		return resultVarType;
+	}
+
+
+	public void setResultVarType(String resultVarType) {
+		this.resultVarType = resultVarType;
 	}	
+	
+	
 	
 	
 }

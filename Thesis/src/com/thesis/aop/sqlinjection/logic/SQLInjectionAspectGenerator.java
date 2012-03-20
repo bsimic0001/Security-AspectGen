@@ -27,7 +27,8 @@ public class SQLInjectionAspectGenerator extends AspectGenerator{
 	public String[] templateVariables = { "<pointcut_name>",
 			"<pointcut_param>", "<function_name>", "<function_params>",
 			"<within_string>", "<args_string>", "<pointcut_vars>",
-			"<advice_logic>", "<advice_proceed>", "<advice_type>", "<result_string>", "<result_var_name>" };
+			"<advice_logic>", "<advice_proceed>", "<advice_type>", 
+			"<result_string>", "<result_var_name>", "<result_var_type>" };
 	
 	public String[] sqlInjectionFixOptions = ThesisUtil.sqlInjectionFixOptions;
 
