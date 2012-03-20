@@ -44,6 +44,22 @@
 		<interceptParamType>String</interceptParamType>
 	</function>
 	
+	<function name="prepareStatementFunctionTwoParam">
+		<methodName>prepareStatement</methodName>
+		<param type="String" name="param1" location="1" result="true"/>
+		<param type="int" name="param2" location="2" result="false"/>
+		<interceptParam>1</interceptParam>
+		<interceptParamType>String</interceptParamType>
+	</function>	
+	
+	<function name="prepareStatementFunctionTwoParam">
+		<methodName>prepareStatement</methodName>
+		<param type="String" name="param1" location="1" result="true"/>
+		<param type="int[]" name="param2" location="2" result="false"/>
+		<interceptParam>1</interceptParam>
+		<interceptParamType>String</interceptParamType>
+	</function>	
+	
 	<function name="generalExecuteFunction">
 		<methodName>execute</methodName>
 		<param type="String" name="param1" location="1" result="true"/>

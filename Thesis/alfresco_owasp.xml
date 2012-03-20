@@ -1,0 +1,868 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ReportDefinition type="xml">
+    <TemplateName>OWASP Top Ten 2010</TemplateName>
+    <TemplatePath></TemplatePath>
+    <LogoPath>/fortify.jpg</LogoPath>
+    <Footnote>Copyright 2010 Fortify Software Inc.</Footnote>
+    <UserName>simicb</UserName>
+    <ReportSection optionalSubsections="false" enabled="true">
+        <Title>Report Overview</Title>
+        <SubSection enabled="true">
+            <Title>Report Summary</Title>
+            <Description>This provides a high level summary of the findings that the analysis produced. Also includes basic information on the scope of the scan.</Description>
+            <Text>On Nov 17, 2011, a source code review was performed over the SOURCE_ANALYSIS code base. 6,323 files, 415,875 LOC (Executable) were scanned. A total of 22 issues were uncovered during the analysis. This report provides a comprehensive description of all the types of OWASP Top Ten 2010 issues found in this project. Specific examples and source code are provided for each issue type.</Text>
+        </SubSection>
+        <SubSection enabled="true">
+            <Title>Issue Summary</Title>
+            <Description>A table summarizing the number of issues found and the breakdown of issues in each OWASP Top Ten 2010 category</Description>
+            <IssueListing limit="-1" listing="false">
+                <Refinement></Refinement>
+                <Chart chartType="table">
+                    <Axis>OWASP Top Ten 2010</Axis>
+                    <MajorAttribute>Analysis</MajorAttribute>
+                    <GroupingSection count="12">
+                        <groupTitle>A1 Injection (11 Hidden)</groupTitle>
+                    </GroupingSection>
+                    <GroupingSection count="10">
+                        <groupTitle>A2 Cross Site Scripting (XSS) (8 Hidden)</groupTitle>
+                    </GroupingSection>
+                </Chart>
+            </IssueListing>
+        </SubSection>
+    </ReportSection>
+    <ReportSection optionalSubsections="true" enabled="true">
+        <Title>Issue Breakdown by OWASP Top Ten 2010</Title>
+        <SubSection enabled="true">
+            <Title>Issue Breakdown by OWASP Top Ten 2010</Title>
+            <IssueListing limit="-1" listing="false">
+                <Refinement></Refinement>
+                <Chart chartType="pie">
+                    <Axis>OWASP Top Ten 2010</Axis>
+                    <MajorAttribute>Analysis</MajorAttribute>
+                    <GroupingSection count="12">
+                        <groupTitle>A1 Injection (11 Hidden)</groupTitle>
+                    </GroupingSection>
+                    <GroupingSection count="10">
+                        <groupTitle>A2 Cross Site Scripting (XSS) (8 Hidden)</groupTitle>
+                    </GroupingSection>
+                </Chart>
+            </IssueListing>
+        </SubSection>
+    </ReportSection>
+    <ReportSection optionalSubsections="true" enabled="true">
+        <Title>Results Outline</Title>
+        <SubSection enabled="true">
+            <Title>Vulnerabilties By OWASP Top Ten 2010</Title>
+            <Description>Results by OWASP Top Ten 2010</Description>
+            <IssueListing limit="-1" listing="true">
+                <Refinement>[OWASP Top Ten 2010]:!Not Covered</Refinement>
+                <Chart chartType="list">
+                    <Axis>OWASP Top Ten 2010</Axis>
+                    <MajorAttribute>Analysis</MajorAttribute>
+                    <GroupingSection count="12">
+                        <groupTitle>A1 Injection (11 Hidden)</groupTitle>
+                        <MajorAttributeSummary>
+                            <MetaInfo>
+<Name>Abstract</Name>
+<Value>Constructing a dynamic SQL statement with user input could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands. </Value>
+                            </MetaInfo>
+                            <MetaInfo>
+<Name>Explanation</Name>
+<Value>SQL injection errors occur when:
+
+1. Data enters a program from an untrusted source.
+
+In this case Fortify could not determine that the source of the data is trusted.
+
+2. The data is used to dynamically construct a SQL query. 
+
+
+
+Example 1: The following code dynamically constructs and executes a SQL query that searches for items matching a specified name. The query restricts the items displayed to those where the owner matches the user name of the currently-authenticated user. 
+
+
+...
+	String userName = ctx.getAuthenticatedUserName();
+	String itemName = request.getParameter(&quot;itemName&quot;);
+	String query = &quot;SELECT * FROM items WHERE owner = '&quot; 
+				+ userName + &quot;' AND itemname = '&quot;  
+				+ itemName + &quot;'&quot;;
+	ResultSet rs = stmt.execute(query);
+	...
+
+
+The query that this code intends to execute follows:
+
+
+	SELECT * FROM items
+	WHERE owner = &lt;userName&gt;
+	AND itemname = &lt;itemName&gt;;
+
+
+However, because the query is constructed dynamically by concatenating a constant base query string and a user input string, the query only behaves correctly if itemName does not contain a single-quote character. If an attacker with the user name wiley enters the string &quot;name' OR 'a'='a&quot; for itemName, then the query becomes the following:
+
+
+	SELECT * FROM items
+	WHERE owner = 'wiley'
+	AND itemname = 'name' OR 'a'='a';
+
+
+The addition of the OR 'a'='a' condition causes the where clause to always evaluate to true, so the query becomes logically equivalent to the much simpler query:
+
+
+	SELECT * FROM items;
+
+
+This simplification of the query allows the attacker to bypass the requirement that the query only return items owned by the authenticated user; the query now returns all entries stored in the items table, regardless of their specified owner.
+
+Example 2: This example examines the effects of a different malicious value passed to the query constructed and executed in Example 1. If an attacker with the user name wiley enters the string &quot;name'; DELETE FROM items; --&quot; for itemName, then the query becomes the following two queries:
+
+
+	SELECT * FROM items 
+	WHERE owner = 'wiley'
+	AND itemname = 'name';
+
+	DELETE FROM items;
+
+	--'
+
+
+Many database servers, including Microsoft(R) SQL Server 2000, allow multiple SQL statements separated by semicolons to be executed at once. While this attack string results in an error on Oracle and other database servers that do not allow the batch-execution of statements separated by semicolons, on databases that do allow batch execution, this type of attack allows the attacker to execute arbitrary commands against the database. 
+
+Notice the trailing pair of hyphens (--), which specifies to most database servers that the remainder of the statement is to be treated as a comment and not executed [4]. In this case the comment character serves to remove the trailing single-quote left over from the modified query. On a database where comments are not allowed to be used in this way, the general attack could still be made effective using a trick similar to the one used in Example 1. If an attacker enters the string &quot;name'); DELETE FROM items; SELECT * FROM items WHERE 'a'='a&quot;, the following three valid statements will be created: 
+
+
+	SELECT * FROM items 
+	WHERE owner = 'wiley'
+	AND itemname = 'name';
+
+	DELETE FROM items;
+
+	SELECT * FROM items WHERE 'a'='a';
+
+
+One traditional approach to preventing SQL injection attacks is to handle them as an input validation problem and either accept only characters from a whitelist of safe values or identify and escape a blacklist of potentially malicious values. Whitelisting can be a very effective means of enforcing strict input validation rules, but parameterized SQL statements require less maintenance and can offer more guarantees with respect to security. As is almost always the case, blacklisting is riddled with loopholes that make it ineffective at preventing SQL injection attacks. For example, attackers can: 
+
+- Target fields that are not quoted
+
+- Find ways to bypass the need for certain escaped meta-characters
+
+- Use stored procedures to hide the injected meta-characters
+
+Manually escaping characters in input to SQL queries can help, but it will not make your application secure from SQL injection attacks. 
+
+Another solution commonly proposed for dealing with SQL injection attacks is to use stored procedures. Although stored procedures prevent some types of SQL injection attacks, they fail to protect against many others. Stored procedures typically help prevent SQL injection attacks by limiting the types of statements that can be passed to their parameters. However, there are many ways around the limitations and many interesting statements that can still be passed to stored procedures. Again, stored procedures can prevent some exploits, but they will not make your application secure against SQL injection attacks. 
+</Value>
+                            </MetaInfo>
+                            <MetaInfo>
+<Name>Recommendations</Name>
+<Value>The root cause of a SQL injection vulnerability is the ability of an attacker to change context in the SQL query, causing a value that the programmer intended to be interpreted as data to be interpreted as a command instead. When a SQL query is constructed, the programmer knows what should be interpreted as part of the command and what should be interpreted as data. Parameterized SQL statements can enforce this behavior by disallowing data-directed context changes and preventing nearly all SQL injection attacks. Parameterized SQL statements are constructed using strings of regular SQL, but when user-supplied data needs to be included, they create bind parameters, which are placeholders for data that is subsequently inserted. Bind parameters allow the program to explicitly specify to the database what should be treated as a command and what should be treated as data. When the program is ready to execute a statement, it specifies to the database the runtime values to use for the value of each of the bind parameters, without the risk of the data being interpreted as commands. 
+
+The previous example can be rewritten to use parameterized SQL statements (instead of concatenating user supplied strings) as follows:
+
+
+...
+String userName = ctx.getAuthenticatedUserName();
+String itemName = request.getParameter(&quot;itemName&quot;);
+String query =
+        &quot;SELECT * FROM items WHERE itemname=? AND owner=?&quot;; 
+PreparedStatement stmt = conn.prepareStatement(query);
+stmt.setString(1, itemName);
+stmt.setString(2, userName);
+ResultSet results = stmt.execute();
+...
+
+
+More complicated scenarios, often found in report generation code, require that user input affect the command structure of the SQL statement, such as the addition of dynamic constraints in the WHERE clause. Do not use this requirement to justify concatenating user input into query strings. Prevent SQL injection attacks where user input must affect statement command structure with a level of indirection: create a set of legitimate strings that correspond to different elements you might include in a SQL statement. When constructing a statement, use input from the user to select from this set of application-controlled values. 
+</Value>
+                            </MetaInfo>
+                            <MetaInfo>
+<Name>Tips</Name>
+<Value>1. A common mistake is to use parameterized SQL statements that are constructed by concatenating user-controlled strings. Of course, this defeats the purpose of using parameterized SQL statements. If you are not certain that the strings used to form statements are constants controlled by the application, do not assume that they are safe because they are not being executed directly as SQL strings. Thoroughly investigate all uses of user-controlled strings in SQL statements and verify that none can be used to modify the meaning of the query. 
+
+2. Data is untrustworthy if it originates from public non-final string fields of a class. These types of fields may be modified by an unknown source.
+
+3. Fortify RTA adds protection against this category.</Value>
+                            </MetaInfo>
+                            <AttributeValue>
+<Name>&lt;Unaudited&gt;</Name>
+<Count>12</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Not an Issue</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Reliability Issue</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Bad Practice</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Suspicious</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Exploitable</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                        </MajorAttributeSummary>
+                        <Issue ruleID="AB181F77-DEC9-44BE-A798-47D9CBA60BD0" iid="DAD651688FA82AAA46E8418473953C49">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 1931 of SchemaBootstrap.java, the method prepareStatement() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SchemaBootstrap.java</FileName>
+<FilePath>repository/source/java/org/alfresco/repo/domain/schema/SchemaBootstrap.java</FilePath>
+<LineStart>1931</LineStart>
+<Snippet>                    int resultSetConcurrency, int resultSetHoldability) throws SQLException
+        {
+            return wrapped.prepareStatement(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
+        }
+</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="66FF2F11-2B0E-4AF9-9D75-0DD555BD0DB6" iid="D9693AA306C9C0201C3F6B4F6D55CFE6">
+                            <Category>SQL Injection</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 1266 of SchemaBootstrap.java, the method executeStatement() invokes a SQL query built using unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SchemaBootstrap.java</FileName>
+<FilePath>repository/source/java/org/alfresco/repo/domain/schema/SchemaBootstrap.java</FilePath>
+<LineStart>1266</LineStart>
+<Snippet>                LogUtil.debug(logger, MSG_EXECUTING_STATEMENT, sql);
+            }
+            boolean haveResults = stmt.execute(sql);
+            // Record the statement
+            executedStatements.append(sql).append(&quot;;\n\n&quot;);</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SchemaBootstrap.java</FileName>
+<FilePath>repository/source/java/org/alfresco/repo/domain/schema/SchemaBootstrap.java</FilePath>
+<LineStart>1043</LineStart>
+<Snippet>            while(true)
+            {
+                String sqlOriginal = reader.readLine();
+                line++;
+                </Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="AB181F77-DEC9-44BE-A798-47D9CBA60BD0" iid="EFEC98D18FC59B05BE41F02E11FCA4E4">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 1917 of SchemaBootstrap.java, the method prepareStatement() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SchemaBootstrap.java</FileName>
+<FilePath>repository/source/java/org/alfresco/repo/domain/schema/SchemaBootstrap.java</FilePath>
+<LineStart>1917</LineStart>
+<Snippet>                    throws SQLException
+        {
+            return wrapped.prepareStatement(sql, columnNames);
+        }
+</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="AB181F77-DEC9-44BE-A798-47D9CBA60BD0" iid="07874F5AD38901A4712761D1390A1093">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 1896 of SchemaBootstrap.java, the method prepareStatement() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SchemaBootstrap.java</FileName>
+<FilePath>repository/source/java/org/alfresco/repo/domain/schema/SchemaBootstrap.java</FilePath>
+<LineStart>1896</LineStart>
+<Snippet>        public PreparedStatement prepareStatement(String sql) throws SQLException
+        {
+            return wrapped.prepareStatement(sql);
+        }
+</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="F077F8B2-7321-4857-943A-44AFB2F97245" iid="A224D5E4F855BCFD3705A02B7783ADE1">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 1876 of SchemaBootstrap.java, the method prepareCall() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SchemaBootstrap.java</FileName>
+<FilePath>repository/source/java/org/alfresco/repo/domain/schema/SchemaBootstrap.java</FilePath>
+<LineStart>1876</LineStart>
+<Snippet>        public CallableStatement prepareCall(String sql) throws SQLException
+        {
+            return wrapped.prepareCall(sql);
+        }
+</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="AB181F77-DEC9-44BE-A798-47D9CBA60BD0" iid="F994B890167ED8712E18DBE080799C4D">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 1903 of SchemaBootstrap.java, the method prepareStatement() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SchemaBootstrap.java</FileName>
+<FilePath>repository/source/java/org/alfresco/repo/domain/schema/SchemaBootstrap.java</FilePath>
+<LineStart>1903</LineStart>
+<Snippet>                    throws SQLException
+        {
+            return wrapped.prepareStatement(sql, autoGeneratedKeys);
+        }
+</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="A318ADFD-0869-4995-9DFD-DB177056E588" iid="02FF11ED895D597D4581FDC382BB7FE9">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 1890 of SchemaBootstrap.java, the method prepareCall() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SchemaBootstrap.java</FileName>
+<FilePath>repository/source/java/org/alfresco/repo/domain/schema/SchemaBootstrap.java</FilePath>
+<LineStart>1890</LineStart>
+<Snippet>                    int resultSetConcurrency, int resultSetHoldability) throws SQLException
+        {
+            return wrapped.prepareCall(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
+        }
+</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="AB181F77-DEC9-44BE-A798-47D9CBA60BD0" iid="37304AFF9FF101C332EE63F3226EC119">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 1910 of SchemaBootstrap.java, the method prepareStatement() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SchemaBootstrap.java</FileName>
+<FilePath>repository/source/java/org/alfresco/repo/domain/schema/SchemaBootstrap.java</FilePath>
+<LineStart>1910</LineStart>
+<Snippet>                    throws SQLException
+        {
+            return wrapped.prepareStatement(sql, columnIndexes);
+        }
+</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="AB181F77-DEC9-44BE-A798-47D9CBA60BD0" iid="C94E3F3781F7B9B6F2EBC9423D6DCCD2">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 1924 of SchemaBootstrap.java, the method prepareStatement() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SchemaBootstrap.java</FileName>
+<FilePath>repository/source/java/org/alfresco/repo/domain/schema/SchemaBootstrap.java</FilePath>
+<LineStart>1924</LineStart>
+<Snippet>                    int resultSetConcurrency) throws SQLException
+        {
+            return wrapped.prepareStatement(sql, resultSetType, resultSetConcurrency);
+        }
+</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="4B673A45-9AD5-4CBA-945B-11A3702CDF57" iid="09695C4C9BA8C9C441655F74E6BD564F">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 605 of SchemaBootstrap.java, the method didPatchSucceed() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SchemaBootstrap.java</FileName>
+<FilePath>repository/source/java/org/alfresco/repo/domain/schema/SchemaBootstrap.java</FilePath>
+<LineStart>605</LineStart>
+<Snippet>        try
+        {
+            ResultSet rs = stmt.executeQuery(&quot;select succeeded from &quot; + patchTableName + &quot; where id = '&quot; + patchId + &quot;'&quot;);
+            if (!rs.next())
+            {</Snippet>
+                            </Primary>
+                        </Issue>
+                        <Issue ruleID="66FF2F11-2B0E-4AF9-9D75-0DD555BD0DB6" iid="157961846489B0ED820980D1D63B6CAC">
+                            <Category>SQL Injection</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 1266 of SchemaBootstrap.java, the method executeStatement() invokes a SQL query built using unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SchemaBootstrap.java</FileName>
+<FilePath>repository/source/java/org/alfresco/repo/domain/schema/SchemaBootstrap.java</FilePath>
+<LineStart>1266</LineStart>
+<Snippet>                LogUtil.debug(logger, MSG_EXECUTING_STATEMENT, sql);
+            }
+            boolean haveResults = stmt.execute(sql);
+            // Record the statement
+            executedStatements.append(sql).append(&quot;;\n\n&quot;);</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>SchemaBootstrap.java</FileName>
+<FilePath>repository/source/java/org/alfresco/repo/domain/schema/SchemaBootstrap.java</FilePath>
+<LineStart>1271</LineStart>
+<Snippet>            if (haveResults &amp;&amp; fetchColumnName != null)
+            {
+                ResultSet rs = stmt.getResultSet();
+                if (rs.next())
+                {</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="7960004D-4FFB-40DC-8BD1-1079F583DE73" iid="DF317F280FD440C212C5CBA0E89778FA">
+                            <Category>SQL Injection</Category>
+                            <Folder>Low</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>On line 1883 of SchemaBootstrap.java, the method prepareCall() invokes a SQL query built using potentially unvalidated input. This call could allow an attacker to modify the statement's meaning or to execute arbitrary SQL commands.</Abstract>
+                            <Friority>Low</Friority>
+                            <Primary>
+<FileName>SchemaBootstrap.java</FileName>
+<FilePath>repository/source/java/org/alfresco/repo/domain/schema/SchemaBootstrap.java</FilePath>
+<LineStart>1883</LineStart>
+<Snippet>                    throws SQLException
+        {
+            return wrapped.prepareCall(sql, resultSetType, resultSetConcurrency);
+        }
+</Snippet>
+                            </Primary>
+                        </Issue>
+                    </GroupingSection>
+                    <GroupingSection count="10">
+                        <groupTitle>A2 Cross Site Scripting (XSS) (8 Hidden)</groupTitle>
+                        <MajorAttributeSummary>
+                            <MetaInfo>
+<Name>Abstract</Name>
+<Value>Sending unvalidated data to a web browser can result in the browser executing malicious code.</Value>
+                            </MetaInfo>
+                            <MetaInfo>
+<Name>Explanation</Name>
+<Value>Cross-site scripting (XSS) vulnerabilities occur when:
+
+1. Data enters a web application through an untrusted source. In the case of Persistent (also known as Stored) XSS, the untrusted source is typically a database or other back-end datastore, while in the case of Reflected XSS it is typically a web request.
+
+
+2. The data is included in dynamic content that is sent to a web user without being validated for malicious code. 
+
+The malicious content sent to the web browser often takes the form of a segment of JavaScript, but may also include HTML, Flash or any other type of code that the browser may execute. The variety of attacks based on XSS is almost limitless, but they commonly include transmitting private data like cookies or other session information to the attacker, redirecting the victim to web content controlled by the attacker, or performing other malicious operations on the user's machine under the guise of the vulnerable site.
+
+Example 1: The following JSP code segment queries a database for an employee with a given ID and prints the corresponding employee's name.
+
+ 
+&lt;%... 
+ Statement stmt = conn.createStatement();
+ ResultSet rs = stmt.executeQuery(&quot;select * from emp where id=&quot;+eid);
+ if (rs != null) {
+  rs.next(); 
+  String name = rs.getString(&quot;name&quot;);
+%&gt;
+
+Employee Name: &lt;%= name %&gt;
+
+
+This code functions correctly when the values of name are well-behaved, but it does nothing to prevent exploits if they are not. This code can appear less dangerous because the value of name is read from a database, whose contents are apparently managed by the application. However, if the value of name originates from user-supplied data, then the database can be a conduit for malicious content. Without proper input validation on all data stored in the database, an attacker can execute malicious commands in the user's web browser. This type of exploit, known as Persistent (or Stored) XSS, is particularly insidious because the indirection caused by the data store makes it more difficult to identify the threat and increases the possibility that the attack will affect multiple users. XSS got its start in this form with web sites that offered a &quot;guestbook&quot; to visitors. Attackers would include JavaScript in their guestbook entries, and all subsequent visitors to the guestbook page would execute the malicious code.
+
+Example 2: The following JSP code segment reads an employee ID, eid, from an HTTP request and displays it to the user. 
+
+
+&lt;% String eid = request.getParameter(&quot;eid&quot;); %&gt; 
+...
+Employee ID: &lt;%= eid %&gt;
+
+
+As in Example 1, this code operates correctly if eid contains only standard alphanumeric text. If eid has a value that includes meta-characters or source code, then the code will be executed by the web browser as it displays the HTTP response.
+
+Initially this might not appear to be much of a vulnerability. After all, why would someone enter a URL that causes malicious code to run on their own computer? The real danger is that an attacker will create the malicious URL, then use e-mail or social engineering tricks to lure victims into visiting a link to the URL. When victims click the link, they unwittingly reflect the malicious content through the vulnerable web application back to their own computers. This mechanism of exploiting vulnerable web applications is known as Reflected XSS.
+
+As the examples demonstrate, XSS vulnerabilities are caused by code that includes unvalidated data in an HTTP response. There are three vectors by which an XSS attack can reach a victim:
+
+- As in Example 1, the application stores dangerous data in a database or other trusted data store. The dangerous data is subsequently read back into the application and included in dynamic content. Persistent XSS exploits occur when an attacker injects dangerous content into a data store that is later read and included in dynamic content. From an attacker's perspective, the optimal place to inject malicious content is in an area that is displayed to either many users or particularly interesting users. Interesting users typically have elevated privileges in the application or interact with sensitive data that is valuable to the attacker. If one of these users executes malicious content, the attacker may be able to perform privileged operations on behalf of the user or gain access to sensitive data belonging to the user.
+
+- As in Example 2, data is read directly from the HTTP request and reflected back in the HTTP response. Reflected XSS exploits occur when an attacker causes a user to supply dangerous content to a vulnerable web application, which is then reflected back to the user and executed by the web browser. The most common mechanism for delivering malicious content is to include it as a parameter in a URL that is posted publicly or e-mailed directly to victims. URLs constructed in this manner constitute the core of many phishing schemes, whereby an attacker convinces victims to visit a URL that refers to a vulnerable site. After the site reflects the attacker's content back to the user, the content is executed and proceeds to transfer private information, such as cookies that may include session information, from the user's machine to the attacker or perform other nefarious activities.
+
+- A source outside the application stores dangerous data in a database or other data store, and the dangerous data is subsequently read back into the application as trusted data and included in dynamic content.</Value>
+                            </MetaInfo>
+                            <MetaInfo>
+<Name>Recommendations</Name>
+<Value>The solution to XSS is to ensure that validation occurs in the correct places and checks for the correct properties.
+
+Since XSS vulnerabilities occur when an application includes malicious data in its output, one logical approach is to validate data immediately before it leaves the application. However, because web applications often have complex and intricate code for generating dynamic content, this method is prone to errors of omission (missing validation). An effective way to mitigate this risk is to also perform input validation for XSS.
+
+Web applications must validate their input to prevent other vulnerabilities, such as SQL injection, so augmenting an application's existing input validation mechanism to include checks for XSS is generally relatively easy. Despite its value, input validation for XSS does not take the place of rigorous output validation. An application may accept input through a shared data store or other trusted source, and that data store may accept input from a source that does not perform adequate input validation. Therefore, the application cannot implicitly rely on the safety of this or any other data. This means the best way to prevent XSS vulnerabilities is to validate everything that enters the application or leaves the application destined for the user. 
+
+The most secure approach to validation for XSS is to create a whitelist of safe characters that are allowed to appear in HTTP content and accept input composed exclusively of characters in the approved set. For example, a valid username might only include alpha-numeric characters or a phone number might only include digits 0-9. However, this solution is often infeasible in web applications because many characters that have special meaning to the browser should still be considered valid input once they are encoded, such as a web design bulletin board that must accept HTML fragments from its users. 
+
+A more flexible, but less secure approach is known as blacklisting, which selectively rejects or escapes potentially dangerous characters before using the input. In order to form such a list, you first need to understand the set of characters that hold special meaning for web browsers. Although the HTML standard defines what characters have special meaning, many web browsers try to correct common mistakes in HTML and may treat other characters as special in certain contexts. The CERT(R) Coordination Center at the Software Engineering Institute at Carnegie Mellon University provides the following details about special characters in various contexts [1]:
+
+In the content of a block-level element (in the middle of a paragraph of text):
+
+- &quot;&lt;&quot; is special because it introduces a tag.
+
+- &quot;&amp;&quot; is special because it introduces a character entity.
+
+- &quot;&gt;&quot; is special because some browsers treat it as special, on the assumption that the author of the page intended to include an opening &quot;&lt;&quot;, but omitted it in error.
+
+The following principles apply to attribute values:
+
+- In attribute values enclosed with double quotes, the double quotes are special because they mark the end of the attribute value.
+
+- In attribute values enclosed with single quote, the single quotes are special because they mark the end of the attribute value.
+
+- In attribute values without any quotes, white-space characters, such as space and tab, are special.
+
+- &quot;&amp;&quot; is special when used with certain attributes, because it introduces a character entity. 
+
+In URLs, for example, a search engine might provide a link within the results page that the user can click to re-run the search. This can be implemented by encoding the search query inside the URL, which introduces additional special characters:
+
+- Space, tab, and new line are special because they mark the end of the URL.
+
+- &quot;&amp;&quot; is special because it either introduces a character entity or separates CGI parameters.
+
+- Non-ASCII characters (that is, everything above 128 in the ISO-8859-1 encoding) are not allowed in URLs, so they are considered to be special in this context.
+
+- The &quot;%&quot; symbol must be filtered from input anywhere parameters encoded with HTTP escape sequences are decoded by server-side code. For example, &quot;%&quot; must be filtered if input such as &quot;%68%65%6C%6C%6F&quot; becomes &quot;hello&quot; when it appears on the web page in question.
+
+
+Within the body of a &lt;SCRIPT&gt; &lt;/SCRIPT&gt;:
+
+- The semicolon, parenthesis, curly braces, and new line should be filtered in situations where text could be inserted directly into a pre-existing script tag. 
+
+Server-side scripts:
+
+- Server-side scripts that convert any exclamation characters (!) in input to double-quote characters (&quot;) on output might require additional filtering. 
+
+Other possibilities:
+
+- If an attacker submits a request in UTF-7, the special character '&lt;' appears as '+ADw-' and may bypass filtering. If the output is included in a page that does not explicitly specify an encoding format, then some browsers try to intelligently identify the encoding based on the content (in this case, UTF-7).
+
+Once you identify the correct points in an application to perform validation for XSS attacks and what special characters the validation should consider, the next challenge is to identify how your validation handles special characters. If special characters are not considered valid input to the application, then you can reject any input that contains special characters as invalid. A second option in this situation is to remove special characters with filtering. However, filtering has the side effect of changing any visual representation of the filtered content and may be unacceptable in circumstances where the integrity of the input must be preserved for display.
+
+If input containing special characters must be accepted and displayed accurately, validation must encode any special characters to remove their significance. A complete list of ISO 8859-1 encoded values for special characters is provided as part of the official HTML specification [2].
+
+Many application servers attempt to limit an application's exposure to cross-site scripting vulnerabilities by providing implementations for the functions responsible for setting certain specific HTTP response content that perform validation for the characters essential to a cross-site scripting attack. Do not rely on the server running your application to make it secure. When an application is developed there are no guarantees about what application servers it will run on during its lifetime. As standards and known exploits evolve, there are no guarantees that application servers will also stay in sync.</Value>
+                            </MetaInfo>
+                            <MetaInfo>
+<Name>Tips</Name>
+<Value>1. The Fortify Secure Coding Rulepacks treat the database as a source of untrusted data, which can lead to XSS vulnerabilities. If the database is a trusted resource in your environment, use custom filters to filter out dataflow issues that include the DATABASE taint flag or originate from database sources.
+
+2. Even though URL encoding untrusted data protects against many XSS attacks, some browsers (specifically, Internet Explorer 6 and 7 and possibly others) automatically decode content at certain locations within the Document Object Model (DOM) prior to passing it to the JavaScript interpreter. To reflect this danger, the Fortify Secure Coding Rulepacks no longer treat URL encoding routines as sufficient to protect against Cross-Site Scripting. Data values that are URL encoded and subsequently output will cause Fortify to report Cross-Site Scripting: Poor Validation vulnerabilities.
+
+3. A number of modern web frameworks provide mechanisms for performing validation of user input. Struts and Struts 2 are among them. To highlight the unvalidated sources of input, the Fortify Secure Coding Rulepacks dynamically re-prioritize the issues reported by Fortify SCA by lowering their probability of exploit and providing pointers to the supporting evidence whenever the framework validation mechanism is in use. We refer to this feature as Context-Sensitive Ranking. To further assist the Fortify user with the auditing process, the Fortify Security Research Group makes available the Data Validation project template that groups the issues into folders based on the validation mechanism applied to their source of input.
+
+4. Fortify RTA adds protection against this category.</Value>
+                            </MetaInfo>
+                            <AttributeValue>
+<Name>&lt;Unaudited&gt;</Name>
+<Count>8</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Not an Issue</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Reliability Issue</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Bad Practice</Name>
+<Count>2</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Suspicious</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                            <AttributeValue>
+<Name>Exploitable</Name>
+<Count>0</Count>
+                            </AttributeValue>
+                        </MajorAttributeSummary>
+                        <Issue ruleID="0E836836-C5D0-4977-9EC1-0CE2AFF9F083" iid="57EAB85E7787CEF29BDB459BEFC7068A">
+                            <Category>Cross-Site Scripting: Poor Validation</Category>
+                            <Folder>Medium</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method redirectToLoginPage() in BaseServlet.java uses HTML, XML or other type of encoding that is not always enough to prevent malicious code from reaching the web browser.</Abstract>
+                            <Friority>Medium</Friority>
+                            <Primary>
+<FileName>BaseServlet.java</FileName>
+<FilePath>web-client/source/java/org/alfresco/web/app/servlet/BaseServlet.java</FilePath>
+<LineStart>283</LineStart>
+<Snippet>         final PrintWriter out = res.getWriter();
+         out.println(&quot;&lt;html&gt;&lt;head&gt;&quot;);
+         out.println(&quot;&lt;meta http-equiv=\&quot;Refresh\&quot; content=\&quot;0; url=&quot; + redirectURL + &quot;\&quot;&gt;&quot;);
+         out.println(&quot;&lt;/head&gt;&lt;body&gt;&lt;p&gt;Please &lt;a href=\&quot;&quot; + redirectURL + &quot;\&quot;&gt;log in&lt;/a&gt;.&lt;/p&gt;&quot;);
+         out.println(&quot;&lt;/body&gt;&lt;/html&gt;&quot;);</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>BaseServlet.java</FileName>
+<FilePath>web-client/source/java/org/alfresco/web/app/servlet/BaseServlet.java</FilePath>
+<LineStart>232</LineStart>
+<Snippet>
+      // Pass the full requested URL as a parameter so the login page knows where to redirect to later
+      String uri = req.getRequestURI();
+
+      // if we find a JSF servlet reference in the URI then we need to check if the rest of the</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="5B9CE105-7C9E-402F-A6B5-3BB9EACDEE95" iid="CA3F9B910CA917E79848F1435A66AA14">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method writeOutput() in AVMRemoteTransportService.java sends unvalidated data to a web browser on line 411, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>AVMRemoteTransportService.java</FileName>
+<FilePath>repository/source/java/org/alfresco/repo/avm/AVMRemoteTransportService.java</FilePath>
+<LineStart>411</LineStart>
+<Snippet>        try
+        {
+            out.write(buff, 0, count);
+        }
+        catch (IOException e)</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>AVMWebappLoader.java</FileName>
+<FilePath>catalina-virtual/source/java/org/alfresco/catalina/loader/AVMWebappLoader.java</FilePath>
+<LineStart>1451</LineStart>
+<Snippet>                    (NameClassPair) enumeration.nextElement();
+                String name = ncPair.getName();
+                Object object = srcDir.lookup(name);
+                File currentFile = new File(destDir, name);
+                if (object instanceof Resource) {</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="5B9CE105-7C9E-402F-A6B5-3BB9EACDEE95" iid="3BF0AA7E9D79AFF3D6870625CED28907">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method writeOutput() in RepoRemoteTransportService.java sends unvalidated data to a web browser on line 459, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>RepoRemoteTransportService.java</FileName>
+<FilePath>repository/source/java/org/alfresco/repo/remote/RepoRemoteTransportService.java</FilePath>
+<LineStart>459</LineStart>
+<Snippet>        try
+        {
+            out.write(buff, 0, count);
+        }
+        catch (IOException e)</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>AVMWebappLoader.java</FileName>
+<FilePath>catalina-virtual/source/java/org/alfresco/catalina/loader/AVMWebappLoader.java</FilePath>
+<LineStart>1451</LineStart>
+<Snippet>                    (NameClassPair) enumeration.nextElement();
+                String name = ncPair.getName();
+                Object object = srcDir.lookup(name);
+                File currentFile = new File(destDir, name);
+                if (object instanceof Resource) {</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="0E836836-C5D0-4977-9EC1-0CE2AFF9F083" iid="4D592CAFA7695D9FD80AD4F924991674">
+                            <Category>Cross-Site Scripting: Poor Validation</Category>
+                            <Folder>Medium</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method redirectToLoginPage() in BaseServlet.java uses HTML, XML or other type of encoding that is not always enough to prevent malicious code from reaching the web browser.</Abstract>
+                            <Friority>Medium</Friority>
+                            <Primary>
+<FileName>BaseServlet.java</FileName>
+<FilePath>web-client/source/java/org/alfresco/web/app/servlet/BaseServlet.java</FilePath>
+<LineStart>283</LineStart>
+<Snippet>         final PrintWriter out = res.getWriter();
+         out.println(&quot;&lt;html&gt;&lt;head&gt;&quot;);
+         out.println(&quot;&lt;meta http-equiv=\&quot;Refresh\&quot; content=\&quot;0; url=&quot; + redirectURL + &quot;\&quot;&gt;&quot;);
+         out.println(&quot;&lt;/head&gt;&lt;body&gt;&lt;p&gt;Please &lt;a href=\&quot;&quot; + redirectURL + &quot;\&quot;&gt;log in&lt;/a&gt;.&lt;/p&gt;&quot;);
+         out.println(&quot;&lt;/body&gt;&lt;/html&gt;&quot;);</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>BaseServlet.java</FileName>
+<FilePath>web-client/source/java/org/alfresco/web/app/servlet/BaseServlet.java</FilePath>
+<LineStart>254</LineStart>
+<Snippet>         
+         // Append the query string if necessary
+         String queryString = req.getQueryString();
+         if (queryString != null)
+         {</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="0E836836-C5D0-4977-9EC1-0CE2AFF9F083" iid="6F817119698A9CCC55E3E36C4C66FBE8">
+                            <Category>Cross-Site Scripting: Poor Validation</Category>
+                            <Folder>Medium</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method redirectToLoginPage() in BaseServlet.java uses HTML, XML or other type of encoding that is not always enough to prevent malicious code from reaching the web browser.</Abstract>
+                            <Friority>Medium</Friority>
+                            <Primary>
+<FileName>BaseServlet.java</FileName>
+<FilePath>web-client/source/java/org/alfresco/web/app/servlet/BaseServlet.java</FilePath>
+<LineStart>284</LineStart>
+<Snippet>         out.println(&quot;&lt;html&gt;&lt;head&gt;&quot;);
+         out.println(&quot;&lt;meta http-equiv=\&quot;Refresh\&quot; content=\&quot;0; url=&quot; + redirectURL + &quot;\&quot;&gt;&quot;);
+         out.println(&quot;&lt;/head&gt;&lt;body&gt;&lt;p&gt;Please &lt;a href=\&quot;&quot; + redirectURL + &quot;\&quot;&gt;log in&lt;/a&gt;.&lt;/p&gt;&quot;);
+         out.println(&quot;&lt;/body&gt;&lt;/html&gt;&quot;);
+         out.close();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>BaseServlet.java</FileName>
+<FilePath>web-client/source/java/org/alfresco/web/app/servlet/BaseServlet.java</FilePath>
+<LineStart>232</LineStart>
+<Snippet>
+      // Pass the full requested URL as a parameter so the login page knows where to redirect to later
+      String uri = req.getRequestURI();
+
+      // if we find a JSF servlet reference in the URI then we need to check if the rest of the</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="0E836836-C5D0-4977-9EC1-0CE2AFF9F083" iid="E354434A802FA93CE6E1BEBF1C07DAAD">
+                            <Category>Cross-Site Scripting: Poor Validation</Category>
+                            <Folder>Medium</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method redirectToLoginPage() in BaseServlet.java uses HTML, XML or other type of encoding that is not always enough to prevent malicious code from reaching the web browser.</Abstract>
+                            <Friority>Medium</Friority>
+                            <Primary>
+<FileName>BaseServlet.java</FileName>
+<FilePath>web-client/source/java/org/alfresco/web/app/servlet/BaseServlet.java</FilePath>
+<LineStart>284</LineStart>
+<Snippet>         out.println(&quot;&lt;html&gt;&lt;head&gt;&quot;);
+         out.println(&quot;&lt;meta http-equiv=\&quot;Refresh\&quot; content=\&quot;0; url=&quot; + redirectURL + &quot;\&quot;&gt;&quot;);
+         out.println(&quot;&lt;/head&gt;&lt;body&gt;&lt;p&gt;Please &lt;a href=\&quot;&quot; + redirectURL + &quot;\&quot;&gt;log in&lt;/a&gt;.&lt;/p&gt;&quot;);
+         out.println(&quot;&lt;/body&gt;&lt;/html&gt;&quot;);
+         out.close();</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>BaseServlet.java</FileName>
+<FilePath>web-client/source/java/org/alfresco/web/app/servlet/BaseServlet.java</FilePath>
+<LineStart>254</LineStart>
+<Snippet>         
+         // Append the query string if necessary
+         String queryString = req.getQueryString();
+         if (queryString != null)
+         {</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="798E4513-03B3-4252-A644-FBA596AEFB2B" iid="99B749698CE45578D8057B00519213DA">
+                            <Category>Cross-Site Scripting: Reflected</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method generateDirectoryListing() in GetMethod.java sends unvalidated data to a web browser on line 431, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Tag>
+<Name>Analysis</Name>
+<Value>Bad Practice</Value>
+                            </Tag>
+                            <Primary>
+<FileName>GetMethod.java</FileName>
+<FilePath>remote-api/source/java/org/alfresco/repo/webdav/GetMethod.java</FilePath>
+<LineStart>431</LineStart>
+<Snippet>                }
+                writer.write(&quot;'&gt;&lt;td class='textData'&gt;&lt;a href=\&quot;&quot;);
+                writer.write(rootURL);
+
+                // name field</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>WebDAV.java</FileName>
+<FilePath>remote-api/source/java/org/alfresco/repo/webdav/WebDAV.java</FilePath>
+<LineStart>447</LineStart>
+<Snippet>    public static String getURLForPath(HttpServletRequest request, String path, boolean isCollection, String userAgent)
+    {
+        StringBuilder urlStr = new StringBuilder(request.getRequestURI());
+        String servletPath = request.getServletPath();
+        </Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="798E4513-03B3-4252-A644-FBA596AEFB2B" iid="25CBC887E00703D3B6BFAC20AD8441FC">
+                            <Category>Cross-Site Scripting: Reflected</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method generateDirectoryListing() in GetMethod.java sends unvalidated data to a web browser on line 405, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Tag>
+<Name>Analysis</Name>
+<Value>Bad Practice</Value>
+                            </Tag>
+                            <Primary>
+<FileName>GetMethod.java</FileName>
+<FilePath>remote-api/source/java/org/alfresco/repo/webdav/GetMethod.java</FilePath>
+<LineStart>405</LineStart>
+<Snippet>                // Strip the last folder from the path
+                String[] paths = getDAVHelper().splitPath(rootURL.substring(0, rootURL.length() - 1));
+                writer.write(paths[0]);
+
+                writer.write(&quot;\&quot;&gt;&quot;);</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>WebDAV.java</FileName>
+<FilePath>remote-api/source/java/org/alfresco/repo/webdav/WebDAV.java</FilePath>
+<LineStart>447</LineStart>
+<Snippet>    public static String getURLForPath(HttpServletRequest request, String path, boolean isCollection, String userAgent)
+    {
+        StringBuilder urlStr = new StringBuilder(request.getRequestURI());
+        String servletPath = request.getServletPath();
+        </Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="5B9CE105-7C9E-402F-A6B5-3BB9EACDEE95" iid="1E401BC3EDDB84AA53E8FD4D0F780E53">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method write() in SampleEncryptionTransformer.java sends unvalidated data to a web browser on line 206, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>SampleEncryptionTransformer.java</FileName>
+<FilePath>deployment/source/java/org/alfresco/deployment/transformers/SampleEncryptionTransformer.java</FilePath>
+<LineStart>206</LineStart>
+<Snippet>		{
+			injectPassword();
+			out.write(b, off, len);
+		}
+		</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>AVMWebappLoader.java</FileName>
+<FilePath>catalina-virtual/source/java/org/alfresco/catalina/loader/AVMWebappLoader.java</FilePath>
+<LineStart>1451</LineStart>
+<Snippet>                    (NameClassPair) enumeration.nextElement();
+                String name = ncPair.getName();
+                Object object = srcDir.lookup(name);
+                File currentFile = new File(destDir, name);
+                if (object instanceof Resource) {</Snippet>
+                            </Source>
+                        </Issue>
+                        <Issue ruleID="5B9CE105-7C9E-402F-A6B5-3BB9EACDEE95" iid="680E962626EA763CABE393CE6434ED0F">
+                            <Category>Cross-Site Scripting: Persistent</Category>
+                            <Folder>Critical</Folder>
+                            <Kingdom>Input Validation and Representation</Kingdom>
+                            <Abstract>The method write() in TestDeploymentTransportTransformer.java sends unvalidated data to a web browser on line 73, which can result in the browser executing malicious code.</Abstract>
+                            <Friority>Critical</Friority>
+                            <Primary>
+<FileName>TestDeploymentTransportTransformer.java</FileName>
+<FilePath>deployment/source/java/org/alfresco/deployment/test/TestDeploymentTransportTransformer.java</FilePath>
+<LineStart>73</LineStart>
+<Snippet>	    {
+	    	fgLogger.debug(&quot;wrote bytes len:&quot; + len); 	
+	        out.write(b, off, len);
+	    }
+	}</Snippet>
+                            </Primary>
+                            <Source>
+<FileName>AVMWebappLoader.java</FileName>
+<FilePath>catalina-virtual/source/java/org/alfresco/catalina/loader/AVMWebappLoader.java</FilePath>
+<LineStart>1451</LineStart>
+<Snippet>                    (NameClassPair) enumeration.nextElement();
+                String name = ncPair.getName();
+                Object object = srcDir.lookup(name);
+                File currentFile = new File(destDir, name);
+                if (object instanceof Resource) {</Snippet>
+                            </Source>
+                        </Issue>
+                    </GroupingSection>
+                </Chart>
+            </IssueListing>
+        </SubSection>
+    </ReportSection>
+</ReportDefinition>
