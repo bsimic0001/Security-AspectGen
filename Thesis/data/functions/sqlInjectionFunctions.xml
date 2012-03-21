@@ -44,7 +44,7 @@
 		<interceptParamType>String</interceptParamType>
 	</function>
 	
-	<function name="prepareStatementFunctionTwoParam">
+	<function name="prepareStatementFunctionTwoParamIntArray">
 		<methodName>prepareStatement</methodName>
 		<param type="String" name="param1" location="1" result="true"/>
 		<param type="int" name="param2" location="2" result="false"/>

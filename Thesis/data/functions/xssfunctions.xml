@@ -48,4 +48,13 @@
 		<interceptParamType>String</interceptParamType>
 		<param type="String" name="param1" location="1" result="true" />
 	</function>
+	
+	<function name="writeByteArrayThreeParam">
+		<methodName>write</methodName>
+		<interceptParam>1</interceptParam>
+		<interceptParamType>String</interceptParamType>
+		<param type="byte[]" name="param1" location="1" result="true" />
+		<param type="String" name="param2" location="1" result="false" />
+		<param type="String" name="param3" location="1" result="false" />
+	</function>
 </functions>
