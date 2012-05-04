@@ -20,7 +20,7 @@
 				}
 			} 
 			else{
-				proceed(<pointcut_vars>);
+				return proceed(<pointcut_vars>);
 			}
 			watch.stop();
 			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 

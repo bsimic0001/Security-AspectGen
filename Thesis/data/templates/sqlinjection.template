@@ -14,7 +14,7 @@
 						logger.info(result);
 					}
 					else{
-						proceed(<result_string>);	
+						return proceed(<result_string>);	
 					}				
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
@@ -22,7 +22,7 @@
 				}
 			}
 			else{
-				proceed(<pointcut_vars>);
+				return proceed(<pointcut_vars>);
 			}
 			watch.stop();
 			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
