@@ -10,6 +10,7 @@ public class Function {
 	public String interceptParamType;
 	public int totalParamNumber;
 	public ArrayList<Param> paramList = new ArrayList<Param>();
+	public boolean encodeReturnValue = false;
 	
 	public Function(){}
 	
@@ -89,6 +90,14 @@ public class Function {
 				return param.getType();
 		}
 		return null;
+	}
+
+	public boolean isEncodeReturnValue() {
+		return encodeReturnValue;
+	}
+
+	public void setEncodeReturnValue(boolean encodeReturnValue) {
+		this.encodeReturnValue = encodeReturnValue;
 	}
 	
 	

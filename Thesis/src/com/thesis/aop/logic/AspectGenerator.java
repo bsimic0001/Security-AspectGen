@@ -299,7 +299,7 @@ public class AspectGenerator {
 					for (Iterator iterator = aspectBeans.iterator(); iterator
 							.hasNext();) {
 						AspectBean aspectBean = (AspectBean) iterator.next();
-						writePointcutAdvice(aspectDataOutputStream, aspectBean, pointcutFileName, templateVariables);
+						writePointcutAdvice(aspectDataOutputStream, aspectBean, aspectBean.getPointcutTemplateFileName(), templateVariables);
 						aspectDataOutputStream.writeBytes("\n");
 
 					}

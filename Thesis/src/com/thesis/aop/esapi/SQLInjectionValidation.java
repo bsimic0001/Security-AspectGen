@@ -7,18 +7,14 @@ import java.util.List;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-
 import net.sf.jsqlparser.JSQLParserException;
-
 import org.apache.log4j.Logger;
 import org.owasp.esapi.ESAPI;
 import org.owasp.esapi.codecs.MySQLCodec;
 import org.owasp.esapi.codecs.OracleCodec;
-
 import com.thesis.aop.main.Main;
 import com.thesis.aop.sqlinjection.logic.SQLParser;
 import com.thesis.aop.sqlinjection.parser.CONSTANT;
@@ -29,7 +25,8 @@ public abstract class SQLInjectionValidation {
 	private static Properties regexProperties;
 	
 	public static void loadRegexProperties() throws IOException{
-		InputStream logStream = Main.class.getResourceAsStream("/properties/regex.properties");
+		InputStream logStream = Main.class.
+			getResourceAsStream("/properties/regex.properties");
 		regexProperties = new Properties();
 		regexProperties.load(logStream);
 	}
@@ -40,8 +37,12 @@ public abstract class SQLInjectionValidation {
 		String encodedResult = s;
 		try {
 			loadRegexProperties();
-			encodedResult = removeCommentsFromString(regexProperties.getProperty("ALL_COMMENTS"), encodedResult, logger);
-			encodedResult = removeCommentsFromString(regexProperties.getProperty("START_COMMENTS"), encodedResult, logger);
+			encodedResult = removeCommentsFromString(
+				regexProperties.getProperty("ALL_COMMENTS"), 
+				encodedResult, logger);
+			encodedResult = removeCommentsFromString(
+				regexProperties.getProperty("START_COMMENTS"), 
+				encodedResult, logger);
 
 			List<SimpleExpression> items = SQLParser.getQueryValues(encodedResult);
 			for (Iterator iterator = items.iterator(); iterator.hasNext();) {
@@ -50,11 +51,13 @@ public abstract class SQLInjectionValidation {
 				boolean tautology = testTautology(simpleExpression, logger);
 				if (tautology) {
 					logger.info("Obvious Tautology Detected with Left Side: "
-							+ simpleExpression.getColumnName()
-							+ " and Right Side: " + simpleExpression.value);
-					logger.info("Replacing Obvious Tautology With 'x=y' in order to prevent execution of attack");
+						+ simpleExpression.getColumnName()
+						+ " and Right Side: " + simpleExpression.value);
+					logger.info("Replacing Obvious Tautology With 'x=y' in " +
+							"order to prevent execution of attack");
 					String regex = "(.{0,1}" + simpleExpression.columnName
-							+ ".{0,1}\\s{0,1000}" + simpleExpression.op + "\\s{0,1000}.{0,1}"
+							+ ".{0,1}\\s{0,1000}" + simpleExpression.op + 
+							"\\s{0,1000}.{0,1}"
 							+ simpleExpression.value + ".{0,1})";
 					encodedResult = encodedResult.replaceAll(regex, " 1=2");
 				} else if (simpleExpression.valueType == CONSTANT.VALUE_STRING) {
@@ -66,8 +69,8 @@ public abstract class SQLInjectionValidation {
 					encodedResult = encodedResult.replace(
 							"'" + simpleExpression.value + "'",
 							"'"
-									+ ESAPI.encoder().encodeForSQL(mysql,
-											simpleExpression.value) + "'");
+							+ ESAPI.encoder().encodeForSQL(mysql,
+							simpleExpression.value) + "'");
 				}
 			}
 		} catch (JSQLParserException e) {
@@ -88,8 +91,12 @@ public abstract class SQLInjectionValidation {
 
 		try {
 			loadRegexProperties();
-			encodedResult = removeCommentsFromString(regexProperties.getProperty("ALL_COMMENTS"), encodedResult, logger);
-			encodedResult = removeCommentsFromString(regexProperties.getProperty("START_COMMENTS"), encodedResult, logger);
+			encodedResult = removeCommentsFromString(
+				regexProperties.getProperty("ALL_COMMENTS"), 
+				encodedResult, logger);
+			encodedResult = removeCommentsFromString(
+				regexProperties.getProperty("START_COMMENTS"), 
+				encodedResult, logger);
 
 			List<SimpleExpression> items = SQLParser.getQueryValues(encodedResult);
 			for (Iterator iterator = items.iterator(); iterator.hasNext();) {
@@ -98,24 +105,25 @@ public abstract class SQLInjectionValidation {
 				boolean tautology = testTautology(simpleExpression, logger);
 				if (tautology) {
 					logger.info("Obvious Tautology Detected with Left Side: "
-							+ simpleExpression.getColumnName()
-							+ " and Right Side: " + simpleExpression.value);
-					logger.info("Replacing Obvious Tautology With 'x=y' in order to prevent execution of attack");
+						+ simpleExpression.getColumnName()
+						+ " and Right Side: " + simpleExpression.value);
+					logger.info("Replacing Obvious Tautology With 'x=y' in " +
+						"order to prevent execution of attack");
 					String regex = "(.{0,1}" + simpleExpression.columnName
-							+ ".{0,1}\\s{0,1000}" + simpleExpression.op + "\\s{0,1000}.{0,1}"
+							+ ".{0,1}\\s{0,1000}" + simpleExpression.op + 
+							"\\s{0,1000}.{0,1}"
 							+ simpleExpression.value + ".{0,1})";
 					encodedResult = encodedResult.replaceAll(regex, " 1=2");
 				} else if (simpleExpression.valueType == CONSTANT.VALUE_STRING) {
 					encodedResult = encodedResult.replace(
 							"\"" + simpleExpression.value + "\"",
 							"\""
-									+ ESAPI.encoder().encodeForSQL(oracle,
-											simpleExpression.value) + "\"");
+							+ ESAPI.encoder().encodeForSQL(oracle,
+								simpleExpression.value) + "\"");
 					encodedResult = encodedResult.replace(
 							"'" + simpleExpression.value + "'",
-							"'"
-									+ ESAPI.encoder().encodeForSQL(oracle,
-											simpleExpression.value) + "'");
+							"'" + ESAPI.encoder().encodeForSQL(oracle,
+							simpleExpression.value) + "'");
 				}
 			}
 		} catch (JSQLParserException e) {
@@ -128,7 +136,8 @@ public abstract class SQLInjectionValidation {
 		return encodedResult;
 	}
 
-	public static boolean testTautology(SimpleExpression exp, Logger logger) {
+	public static boolean testTautology(SimpleExpression exp, 
+		Logger logger) {
 		ScriptEngineManager manager = new ScriptEngineManager();
 		ScriptEngine engine = manager.getEngineByName("js");
 		boolean resultBool = false;
@@ -162,11 +171,14 @@ public abstract class SQLInjectionValidation {
 
 	}
 	
-	public static String removeCommentsFromString(String regex, String input, Logger logger){
-		Pattern regexp = Pattern.compile(regex, Pattern.DOTALL | Pattern.MULTILINE);
+	public static String removeCommentsFromString(String regex, 
+		String input, Logger logger){
+		Pattern regexp = Pattern.compile(regex, 
+				Pattern.DOTALL | Pattern.MULTILINE);
 	    Matcher regexMatcher = regexp.matcher(input);
 	    while (regexMatcher.find()) {
-	    	logger.info("Removing comment from query: \"" + regexMatcher.group() + "\" from \"" + input + "\"");
+	    	logger.info("Removing comment from query: \"" + 
+	    		regexMatcher.group() + "\" from \"" + input + "\"");
 	    	input = input.replace(regexMatcher.group(), " ");
 	    } 
 	    return input;

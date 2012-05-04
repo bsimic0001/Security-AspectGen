@@ -15,6 +15,7 @@ public class AspectBean {
 	public String resultString;
 	public String resultVarName;
 	public String resultVarType;
+	public String pointcutTemplateFileName;
 	
 	public AspectBean(){}
 	
@@ -140,6 +141,16 @@ public class AspectBean {
 
 	public void setResultVarType(String resultVarType) {
 		this.resultVarType = resultVarType;
+	}
+
+
+	public String getPointcutTemplateFileName() {
+		return pointcutTemplateFileName;
+	}
+
+
+	public void setPointcutTemplateFileName(String pointcutTemplateFileName) {
+		this.pointcutTemplateFileName = pointcutTemplateFileName;
 	}	
 	
 	

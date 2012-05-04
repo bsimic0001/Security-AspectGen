@@ -35,7 +35,7 @@
 		<param type="String" name="param1" location="1" result="true" />
 	</function>
 
-	<function name="getParameterFunction">
+	<function name="getParameterFunction" encodeReturnValue="true">
 		<methodName>getParameter</methodName>
 		<interceptParam>1</interceptParam>
 		<interceptParamType>String</interceptParamType>

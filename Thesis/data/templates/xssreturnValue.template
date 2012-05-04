@@ -1,0 +1,30 @@
+		pointcut xss_<pointcut_name>(<pointcut_param>) : 
+			call(* *.<function_name>(<function_params>)) && 
+			(<within_string>) && 
+			args(<args_string>);
+			
+		Object around(<pointcut_param>) : xss_<pointcut_name>(<pointcut_vars>){
+			watch.start();
+			if(fixes.containsKey(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+				thisJoinPoint.getSourceLocation().getLine())){
+				
+				try{
+					<result_var_type> result = (<result_var_type>) proceed(<pointcut_vars>);
+					
+					<result_var_type> encodedValue = ThesisUtil.doXSSFix(result, fixes.get(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+						thisJoinPoint.getSourceLocation().getLine()));
+				
+				    return encodedValue;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			} 
+			else{
+				proceed(<pointcut_vars>);
+			}
+			watch.stop();
+			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
+				thisJoinPoint.getSourceLocation().getLine() + "," + watch.getElapsedTime());			
+						
+			return null;
+		}

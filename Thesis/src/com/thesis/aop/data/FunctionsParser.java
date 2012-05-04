@@ -51,6 +51,13 @@ public class FunctionsParser {
 						newFunction = true;
 						tempFunction = new Function();
 						tempFunction.setName(attributes.getValue("name"));
+					
+						if(attributes.getValue("encodeReturnValue") != null){
+							Boolean returnValue = new Boolean(attributes.getValue("encodeReturnValue"));
+							if(returnValue.booleanValue()){
+								tempFunction.setEncodeReturnValue(true);
+							}
+						}
 					}
 					if(qName.equalsIgnoreCase("METHODNAME")){
 						newMethodName = true;

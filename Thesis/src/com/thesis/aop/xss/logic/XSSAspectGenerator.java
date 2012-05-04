@@ -50,7 +50,14 @@ public class XSSAspectGenerator extends AspectGenerator{
 		adviceMap = createAdviceMap(xssIssues, xssFixOptions);
 		for (Iterator iterator = functions.iterator(); iterator.hasNext();) {
 			Function f = (Function) iterator.next();
-			aspectBeans.add(generateAspectBean(f, withinString, lineNumberString));
+			AspectBean ab = generateAspectBean(f, withinString, lineNumberString);
+			
+			
+			if(f.encodeReturnValue)
+				ab.setPointcutTemplateFileName("xssreturnValue.template");
+			else
+				ab.setPointcutTemplateFileName("xss.template");
+			aspectBeans.add(ab);
 		}
 		System.out.println(aspectBeans.size());
 		writeAspect("XSSAspect.java.template", 

@@ -48,7 +48,11 @@ public class SQLInjectionAspectGenerator extends AspectGenerator{
 		adviceMap = createAdviceMap(sqlInjectionIssues, sqlInjectionFixOptions);
 		for (Iterator iterator = functions.iterator(); iterator.hasNext();) {
 			Function f = (Function) iterator.next();
-			aspectBeans.add(generateAspectBean(f, withinString, lineNumberString));
+			AspectBean ab = generateAspectBean(f, withinString, lineNumberString);
+			
+			ab.setPointcutTemplateFileName("sqlinjection.template");
+			
+			aspectBeans.add(ab);
 		}
 		System.out.println(aspectBeans.size());
 		writeAspect("SQLInjectionAspect.java.template", 
