@@ -14,10 +14,9 @@
 						logger.info(result);
 					}
 					else{
-						return proceed(<result_string>);	
+						return proceed(result);	
 					}				
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -27,5 +26,5 @@
 			watch.stop();
 			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
 				thisJoinPoint.getSourceLocation().getLine() + "," + watch.getElapsedTime());			
-			return null;
+			return proceed(<pointcut_vars>);
 		}

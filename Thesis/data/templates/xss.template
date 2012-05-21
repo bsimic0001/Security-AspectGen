@@ -24,5 +24,5 @@
 			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
 				thisJoinPoint.getSourceLocation().getLine() + "," + watch.getElapsedTime());			
 						
-			return null;
+			return return proceed(<pointcut_vars>);
 		}
