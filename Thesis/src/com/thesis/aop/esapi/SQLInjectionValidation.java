@@ -53,7 +53,7 @@ public abstract class SQLInjectionValidation {
 					logger.info("Obvious Tautology Detected with Left Side: "
 						+ simpleExpression.getColumnName()
 						+ " and Right Side: " + simpleExpression.value);
-					logger.info("Replacing Obvious Tautology With 'x=y' in " +
+					logger.info("Replacing Obvious Tautology With '1=2' in " +
 							"order to prevent execution of attack");
 					String regex = "(.{0,1}" + simpleExpression.columnName
 							+ ".{0,1}\\s{0,1000}" + simpleExpression.op + 
@@ -107,7 +107,7 @@ public abstract class SQLInjectionValidation {
 					logger.info("Obvious Tautology Detected with Left Side: "
 						+ simpleExpression.getColumnName()
 						+ " and Right Side: " + simpleExpression.value);
-					logger.info("Replacing Obvious Tautology With 'x=y' in " +
+					logger.info("Replacing Obvious Tautology With '1=2' in " +
 						"order to prevent execution of attack");
 					String regex = "(.{0,1}" + simpleExpression.columnName
 							+ ".{0,1}\\s{0,1000}" + simpleExpression.op + 
