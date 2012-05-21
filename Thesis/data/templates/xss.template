@@ -13,7 +13,6 @@
 						thisJoinPoint.getSourceLocation().getLine()));
 					return proceed(<result_string>);
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			} 
@@ -24,5 +23,5 @@
 			logger.info(thisJoinPoint.getSourceLocation().getFileName() + "_" + 
 				thisJoinPoint.getSourceLocation().getLine() + "," + watch.getElapsedTime());			
 						
-			return return proceed(<pointcut_vars>);
+			return proceed(<pointcut_vars>);
 		}

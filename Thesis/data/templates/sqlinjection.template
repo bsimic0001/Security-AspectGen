@@ -14,7 +14,7 @@
 						logger.info(result);
 					}
 					else{
-						return proceed(result);	
+						return proceed(<result_string>);	
 					}				
 				} catch (Exception e) {
 					e.printStackTrace();
