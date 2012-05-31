@@ -173,6 +173,7 @@ public abstract class SQLInjectionValidation {
 	
 	public static String removeCommentsFromString(String regex, 
 		String input, Logger logger){
+		
 		Pattern regexp = Pattern.compile(regex, 
 				Pattern.DOTALL | Pattern.MULTILINE);
 	    Matcher regexMatcher = regexp.matcher(input);
@@ -181,6 +182,12 @@ public abstract class SQLInjectionValidation {
 	    		regexMatcher.group() + "\" from \"" + input + "\"");
 	    	input = input.replace(regexMatcher.group(), " ");
 	    } 
+	    
+	    int semicolonIndex = input.indexOf(";");
+	    
+	    if(semicolonIndex > -1)
+	    	input = input.substring(0, semicolonIndex + 1);
+	    
 	    return input;
 	}
 

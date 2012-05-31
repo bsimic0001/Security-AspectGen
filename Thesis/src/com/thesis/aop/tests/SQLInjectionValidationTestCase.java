@@ -13,7 +13,7 @@ public class SQLInjectionValidationTestCase {
 
 	final Logger logger;
 
-	String query = "INSERT INTO COMMENTS VALUES(123,''); DELETE FROM users; -- ');";
+	String query = "SELECT * FROM salaries WHERE userid='whatever'; INSERT INTO salaries VALUES ('rlupin',150000);'";
 
 	public SQLInjectionValidationTestCase() {
 		PropertyConfigurator.configure("log4j.properties");
