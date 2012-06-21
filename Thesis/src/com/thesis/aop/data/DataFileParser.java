@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2012 Bojan Simic.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the GNU Lesser Public License v2.1
+ * which accompanies this distribution, and is available at
+ * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+ * 
+ * Contributors:
+ *     Bojan Simic - initial API and implementation
+ ******************************************************************************/
 package com.thesis.aop.data;
 
 import java.util.ArrayList;
@@ -9,14 +19,34 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+
+/**
+ * The Class DataFileParser.
+ */
 public class DataFileParser {
+	
+	/** The file name. */
 	private String fileName;
+	
+	/** The issues. */
 	private ArrayList<Issue> issues = new ArrayList<Issue>();
+	
+	/** The xss issues. */
 	private ArrayList<Issue> xssIssues = new ArrayList<Issue>();
+	
+	/** The sql injection issues. */
 	private ArrayList<Issue> sqlInjectionIssues = new ArrayList<Issue>();
 	
+	/**
+	 * Instantiates a new data file parser.
+	 */
 	public DataFileParser(){}
 	
+	/**
+	 * Parses the file.
+	 *
+	 * @param fileName the file name
+	 */
 	public void ParseFile(String fileName) {
 		this.fileName = fileName;
 		
@@ -164,38 +194,83 @@ public class DataFileParser {
 
 	}
 
+	/**
+	 * Gets the file name.
+	 *
+	 * @return the file name
+	 */
 	public String getFileName() {
 		return fileName;
 	}
 
+	/**
+	 * Sets the file name.
+	 *
+	 * @param fileName the new file name
+	 */
 	public void setFileName(String fileName) {
 		this.fileName = fileName;
 	}
 	
+	/**
+	 * Gets the issues.
+	 *
+	 * @return the issues
+	 */
 	public ArrayList<Issue> getIssues() {
 		return issues;
 	}
 
+	/**
+	 * Sets the issues.
+	 *
+	 * @param issues the new issues
+	 */
 	public void setIssues(ArrayList<Issue> issues) {
 		this.issues = issues;
 	}
 
+	/**
+	 * Gets the xss issues.
+	 *
+	 * @return the xss issues
+	 */
 	public ArrayList<Issue> getXssIssues() {
 		return xssIssues;
 	}
 
+	/**
+	 * Sets the xss issues.
+	 *
+	 * @param xssIssues the new xss issues
+	 */
 	public void setXssIssues(ArrayList<Issue> xssIssues) {
 		this.xssIssues = xssIssues;
 	}
 
+	/**
+	 * Gets the sql injection issues.
+	 *
+	 * @return the sql injection issues
+	 */
 	public ArrayList<Issue> getSqlInjectionIssues() {
 		return sqlInjectionIssues;
 	}
 
+	/**
+	 * Sets the sql injection issues.
+	 *
+	 * @param sqlInjectionIssues the new sql injection issues
+	 */
 	public void setSqlInjectionIssues(ArrayList<Issue> sqlInjectionIssues) {
 		this.sqlInjectionIssues = sqlInjectionIssues;
 	}
 
+	/**
+	 * Adds the issue to list.
+	 *
+	 * @param i the i
+	 */
 	public void addIssueToList(Issue i){
 		if(i.getCategory().indexOf("SQL Injection") != -1)
 			sqlInjectionIssues.add(i);
