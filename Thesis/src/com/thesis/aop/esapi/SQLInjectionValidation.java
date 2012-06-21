@@ -185,8 +185,13 @@ public abstract class SQLInjectionValidation {
 	    
 	    int semicolonIndex = input.indexOf(";");
 	    
-	    if(semicolonIndex > -1)
+	    if(semicolonIndex > -1){
+	    	String originalInput = input;
 	    	input = input.substring(0, semicolonIndex + 1);
+	    	logger.info("IMPORTANT: Found multiple queries.");
+	    	logger.info("     Keeping - " + input);
+	    	logger.info("     From - " + originalInput);
+	    }
 	    
 	    return input;
 	}
