@@ -23,7 +23,8 @@ public class SQLInjectionValidationTestCase {
 
 	final Logger logger;
 
-	String query = "SELECT * FROM salaries WHERE userid='whatever'; INSERT INTO salaries VALUES ('rlupin',150000);'";
+	//String query = "SELECT * FROM salaries WHERE userid='whatever'; INSERT INTO salaries VALUES ('rlupin',150000);'";
+	String query = "SELECT * FROM salaries WHERE userid='whatever';";
 
 	public SQLInjectionValidationTestCase() {
 		PropertyConfigurator.configure("log4j.properties");
